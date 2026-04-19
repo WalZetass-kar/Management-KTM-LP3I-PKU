@@ -1,28 +1,30 @@
 @import "tailwindcss";
 @source "../**/*.{ts,tsx}";
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
 :root {
-  --background: #f8f9fb;
-  --foreground: #1e293b;
+  --background: #f8fafc;
+  --foreground: #0f1e36;
   --card: #ffffff;
-  --card-foreground: #1e293b;
-  --primary: #1e3a8a;
+  --card-foreground: #0f1e36;
+  --primary: #0f2847;
   --primary-foreground: #ffffff;
-  --secondary: #eef2ff;
-  --secondary-foreground: #1e293b;
+  --secondary: #f0f6ff;
+  --secondary-foreground: #0f1e36;
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
-  --accent: #dbeafe;
-  --accent-foreground: #1e3a8a;
+  --accent: #e0ecff;
+  --accent-foreground: #0f2847;
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
   --border: #dbe4f0;
   --input: #dbe4f0;
-  --ring: #1d4ed8;
-  --sidebar: #0f1f4a;
+  --ring: #2a74c4;
+  --sidebar: #0a1628;
   --sidebar-foreground: #ffffff;
-  --sidebar-accent: #16316f;
-  --sidebar-border: #1c3d88;
+  --sidebar-accent: #0f2847;
+  --sidebar-border: #1a3350;
   --success: #15803d;
   --warning: #d97706;
   --radius: 0.875rem;
@@ -69,7 +71,7 @@
 
   body {
     @apply min-h-screen bg-background text-foreground antialiased;
-    font-family: "Segoe UI", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: "Inter", "Segoe UI", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   }
 
   a {
@@ -81,5 +83,55 @@
   select,
   textarea {
     font: inherit;
+  }
+}
+
+/* ── Print Styles ── */
+@media print {
+  body {
+    background: white !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  /* Ensure KTM card prints at proper size */
+  [data-ktm-download] {
+    width: 85.6mm !important;
+    height: 53.98mm !important;
+    border-radius: 3mm !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+  }
+}
+
+/* ── KTM Card Print Quality ── */
+@layer utilities {
+  .ktm-print-ready {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    color-adjust: exact;
+  }
+}
+
+/* ── Smooth animations ── */
+@layer base {
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out forwards;
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.5s ease-out forwards;
   }
 }

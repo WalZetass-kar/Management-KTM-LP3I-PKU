@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
 import { navigationItems } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
+import { LogoLP3I } from "@/components/ui/logo-lp3i";
 
 interface DashboardSidebarProps {
   isOpen: boolean;
@@ -45,10 +46,13 @@ export function DashboardSidebar({ isOpen, onClose }: DashboardSidebarProps) {
         )}
       >
         <div className="flex items-start justify-between border-b border-sidebar-border px-6 py-7">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-blue-200">Admin Console</p>
-            <h1 className="mt-3 text-2xl font-semibold">KTM Management</h1>
-            <p className="mt-2 text-sm leading-6 text-blue-100/90">Politeknik LP3I Pekanbaru</p>
+          <div className="flex items-center gap-4">
+            <LogoLP3I variant="white" size="lg" className="h-14 w-14" />
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-blue-200">Admin Console</p>
+              <h1 className="mt-2 text-xl font-bold">KTM Management</h1>
+              <p className="mt-1 text-xs leading-5 text-blue-100/90">Politeknik LP3I Pekanbaru</p>
+            </div>
           </div>
           <button
             type="button"

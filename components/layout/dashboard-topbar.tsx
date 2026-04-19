@@ -68,6 +68,9 @@ export function DashboardTopbar({ onOpenSidebar, userProfile }: DashboardTopbarP
                 <div className="absolute right-0 z-20 mt-3 w-56 rounded-2xl border bg-white p-2 shadow-lg">
                   <button
                     type="button"
+                    onClick={() => {
+                      window.location.href = "/profile";
+                    }}
                     className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-foreground transition hover:bg-secondary"
                   >
                     <User className="h-4 w-4" />

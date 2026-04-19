@@ -72,17 +72,20 @@ export interface Database {
           username: string;
           role: "admin" | "super_admin";
           created_at: string;
+          photo_url: string | null;
         };
         Insert: {
           id: string;
           username: string;
           role?: "admin" | "super_admin";
           created_at?: string;
+          photo_url?: string | null;
         };
         Update: {
           username?: string;
           role?: "admin" | "super_admin";
           created_at?: string;
+          photo_url?: string | null;
         };
         Relationships: [];
       };

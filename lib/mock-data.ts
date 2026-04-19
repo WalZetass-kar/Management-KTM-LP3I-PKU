@@ -2,10 +2,10 @@ import type { ActivityFeedItem, DashboardStat, StudentGrowthPoint } from "@/type
 import type { StudentRecord, VerificationRecord } from "@/types/student";
 
 export const studyPrograms = [
-  "Teknik Informatika",
-  "Akuntansi",
-  "Manajemen",
+  "Hubungan Masyarakat",
   "Administrasi Bisnis",
+  "Komputerisasi Akuntansi",
+  "Manajemen Informatika",
 ] as const;
 
 export const students: StudentRecord[] = [

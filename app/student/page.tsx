@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { studentLogoutAction } from "@/actions/student-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { KtmCardPreview } from "@/features/ktm/components/ktm-card-preview";
+import { KtmCardPreviewV2 } from "@/features/ktm/components/ktm-card-preview-v2";
 import { getStudentPortalData } from "@/lib/student-auth";
 import { clearStudentSession, getStudentSession } from "@/lib/student-session-server";
 import { getErrorMessage } from "@/lib/utils";
@@ -129,7 +129,7 @@ export default async function StudentPortalPage() {
                 Kartu Mahasiswa Digital
               </h2>
             </div>
-            <KtmCardPreview student={student} />
+            <KtmCardPreviewV2 mahasiswa={student} />
           </div>
         </div>
       </section>

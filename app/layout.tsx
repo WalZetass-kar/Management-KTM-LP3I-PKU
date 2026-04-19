@@ -4,10 +4,10 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Student ID Card Management",
-    template: "%s | Student ID Card Management",
+    default: "KTM Management - Politeknik LP3I Pekanbaru",
+    template: "%s | Politeknik LP3I Pekanbaru",
   },
-  description: "Administrative dashboard for managing student records, KTM generation, and verification workflows.",
+  description: "Sistem manajemen kartu tanda mahasiswa digital untuk Politeknik LP3I Pekanbaru. Kelola data mahasiswa, generate KTM, dan verifikasi identitas dengan mudah.",
 };
 
 export default function RootLayout({

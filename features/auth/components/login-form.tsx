@@ -6,6 +6,7 @@ import { loginAction } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { initialFormActionState } from "@/types/action-state";
+import { LogoLP3I } from "@/components/ui/logo-lp3i";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
@@ -16,8 +17,8 @@ export function LoginForm() {
     <div className="w-full max-w-md">
       <div className="rounded-[2rem] border border-white/20 bg-white/96 p-8 shadow-[0_30px_120px_rgba(15,23,42,0.28)] backdrop-blur-md sm:p-10">
         <div className="text-center">
-          <div className="mx-auto flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/20">
-            <Lock className="h-8 w-8" />
+          <div className="mx-auto flex items-center justify-center">
+            <LogoLP3I variant="colored" size="xl" className="h-20 w-20" />
           </div>
           <p className="mt-6 text-xs font-semibold uppercase tracking-[0.24em] text-primary/80">Secure Access</p>
           <h1 className="mt-3 text-3xl font-semibold text-foreground">KTM Management</h1>

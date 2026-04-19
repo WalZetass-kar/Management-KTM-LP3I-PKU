@@ -5,7 +5,7 @@ import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select } from "@/components/ui/select";
-import { KtmCardPreview } from "@/features/ktm/components/ktm-card-preview";
+import { KtmCardPreviewV2 } from "@/features/ktm/components/ktm-card-preview-v2";
 import type { StudentRecord } from "@/types/student";
 
 interface KtmGeneratorProps {
@@ -117,7 +117,7 @@ export function KtmGenerator({ students, errorMessage = null }: KtmGeneratorProp
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">Preview</p>
           <h2 className="mt-2 text-2xl font-semibold text-foreground">Pratinjau KTM</h2>
         </div>
-        <KtmCardPreview student={selectedStudent} />
+        {selectedStudent && <KtmCardPreviewV2 mahasiswa={selectedStudent} />}
       </div>
     </section>
   );
