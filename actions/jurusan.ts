@@ -135,7 +135,7 @@ export async function deleteJurusanAction(jurusanId: number) {
     const supabase = await createServerSupabaseClient();
 
     // Cek apakah jurusan masih digunakan oleh mahasiswa
-    const { data: mahasiswaCount, error: countError } = await supabase
+    const { count, error: countError } = await supabase
       .from("mahasiswa")
       .select("id", { count: "exact", head: true })
       .eq("jurusan_id", jurusanId);
@@ -144,7 +144,7 @@ export async function deleteJurusanAction(jurusanId: number) {
       throw countError;
     }
 
-    if (mahasiswaCount && mahasiswaCount.length > 0) {
+    if (count && count > 0) {
       return {
         status: "error" as const,
         message: "Jurusan tidak dapat dihapus karena masih digunakan oleh mahasiswa.",

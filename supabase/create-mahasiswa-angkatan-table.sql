@@ -21,21 +21,23 @@ CREATE INDEX IF NOT EXISTS idx_mahasiswa_angkatan_study_program ON mahasiswa_ang
 -- Add RLS (Row Level Security) policies if needed
 ALTER TABLE mahasiswa_angkatan ENABLE ROW LEVEL SECURITY;
 
--- Create policy to allow authenticated users to read all records
-CREATE POLICY "Allow authenticated users to read mahasiswa_angkatan" ON mahasiswa_angkatan
-  FOR SELECT USING (auth.role() = 'authenticated');
+-- Create policies using is_admin_user() function
+CREATE POLICY "Admins can read mahasiswa_angkatan" ON mahasiswa_angkatan
+  FOR SELECT TO authenticated
+  USING ((SELECT public.is_admin_user()));
 
--- Create policy to allow authenticated users to insert records
-CREATE POLICY "Allow authenticated users to insert mahasiswa_angkatan" ON mahasiswa_angkatan
-  FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+CREATE POLICY "Admins can insert mahasiswa_angkatan" ON mahasiswa_angkatan
+  FOR INSERT TO authenticated
+  WITH CHECK ((SELECT public.is_admin_user()));
 
--- Create policy to allow authenticated users to update records
-CREATE POLICY "Allow authenticated users to update mahasiswa_angkatan" ON mahasiswa_angkatan
-  FOR UPDATE USING (auth.role() = 'authenticated');
+CREATE POLICY "Admins can update mahasiswa_angkatan" ON mahasiswa_angkatan
+  FOR UPDATE TO authenticated
+  USING ((SELECT public.is_admin_user()))
+  WITH CHECK ((SELECT public.is_admin_user()));
 
--- Create policy to allow authenticated users to delete records
-CREATE POLICY "Allow authenticated users to delete mahasiswa_angkatan" ON mahasiswa_angkatan
-  FOR DELETE USING (auth.role() = 'authenticated');
+CREATE POLICY "Admins can delete mahasiswa_angkatan" ON mahasiswa_angkatan
+  FOR DELETE TO authenticated
+  USING ((SELECT public.is_admin_user()));
 
 -- Insert sample data for testing (optional)
 INSERT INTO mahasiswa_angkatan (full_name, nim, angkatan, study_program, status, address, phone_number) VALUES

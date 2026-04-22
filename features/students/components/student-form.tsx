@@ -9,10 +9,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { studyPrograms } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import { initialFormActionState } from "@/types/action-state";
 import type { StudentFormValues, StudentRecord } from "@/types/student";
+import type { JurusanRecord } from "@/types/jurusan";
+import type { Angkatan } from "@/types/angkatan";
 
 const initialValues: StudentFormValues = {
   fullName: "",
@@ -27,9 +28,11 @@ const initialValues: StudentFormValues = {
 interface StudentFormProps {
   mode: "create" | "update";
   student?: StudentRecord;
+  jurusanList: JurusanRecord[];
+  angkatanList: Angkatan[];
 }
 
-export function StudentForm({ mode, student }: StudentFormProps) {
+export function StudentForm({ mode, student, jurusanList, angkatanList }: StudentFormProps) {
   const router = useRouter();
   const [formValues, setFormValues] = useState<StudentFormValues>(
     student
@@ -217,13 +220,10 @@ export function StudentForm({ mode, student }: StudentFormProps) {
                   value={formValues.angkatan}
                   onChange={(event) => setFieldValue("angkatan", event.target.value)}
                   placeholder="Pilih angkatan"
-                  options={[
-                    { label: "2023", value: "2023" },
-                    { label: "2024", value: "2024" },
-                    { label: "2025", value: "2025" },
-                    { label: "2026", value: "2026" },
-                    { label: "2027", value: "2027" },
-                  ]}
+                  options={angkatanList.map((angkatan) => ({ 
+                    label: angkatan.nama_angkatan, 
+                    value: angkatan.tahun 
+                  }))}
                 />
               </div>
 
@@ -238,7 +238,10 @@ export function StudentForm({ mode, student }: StudentFormProps) {
                   onChange={(event) => setFieldValue("studyProgram", event.target.value)}
                   className={cn(errors.studyProgram && "border-destructive focus:border-destructive focus:ring-destructive/10")}
                   placeholder="Pilih jurusan"
-                  options={studyPrograms.map((program) => ({ label: program, value: program }))}
+                  options={jurusanList.map((jurusan) => ({ 
+                    label: jurusan.namaJurusan, 
+                    value: jurusan.namaJurusan 
+                  }))}
                 />
                 {errors.studyProgram ? <p className="text-sm text-destructive">{errors.studyProgram}</p> : null}
               </div>

@@ -195,6 +195,7 @@ export function buildMahasiswaInsert(values: StudentFormValues, photoUrl: string
     foto_url: photoUrl,
     status: values.status,
     angkatan: values.angkatan,
+    // Foreign keys will be auto-synced by trigger
   };
 }
 
@@ -208,6 +209,7 @@ export function buildMahasiswaUpdate(values: StudentFormValues, photoUrl: string
     foto_url: photoUrl,
     status: values.status,
     angkatan: values.angkatan,
+    // Foreign keys will be auto-synced by trigger
   };
 }
 

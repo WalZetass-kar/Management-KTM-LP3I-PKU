@@ -5,114 +5,66 @@ export async function getDashboardStats() {
   try {
     const supabase = await createServerSupabaseClient();
 
-    // Try mahasiswa_angkatan first, fallback to mahasiswa
-    let totalCount = 0;
-    let pendingCount = 0;
-    let activeCount = 0;
-    let thisMonthCount = 0;
+    // Sekarang hanya query dari tabel mahasiswa
+    const { count: totalCount, error: totalError } = await supabase
+      .from("mahasiswa")
+      .select("*", { count: "exact", head: true });
 
-    // Try mahasiswa_angkatan table first
-    try {
-      const { count: totalCountAngkatan, error: totalErrorAngkatan } = await supabase
-        .from("mahasiswa_angkatan")
-        .select("*", { count: "exact", head: true });
+    if (totalError) throw totalError;
 
-      if (!totalErrorAngkatan) {
-        totalCount = totalCountAngkatan ?? 0;
+    // Get mahasiswa menunggu
+    const { count: pendingCount, error: pendingError } = await supabase
+      .from("mahasiswa")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "Menunggu");
 
-        // Get mahasiswa menunggu
-        const { count: pendingCountAngkatan, error: pendingErrorAngkatan } = await supabase
-          .from("mahasiswa_angkatan")
-          .select("*", { count: "exact", head: true })
-          .eq("status", "Menunggu");
+    if (pendingError) throw pendingError;
 
-        if (!pendingErrorAngkatan) pendingCount = pendingCountAngkatan ?? 0;
+    // Get mahasiswa aktif
+    const { count: activeCount, error: activeError } = await supabase
+      .from("mahasiswa")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "Aktif");
 
-        // Get mahasiswa aktif
-        const { count: activeCountAngkatan, error: activeErrorAngkatan } = await supabase
-          .from("mahasiswa_angkatan")
-          .select("*", { count: "exact", head: true })
-          .eq("status", "Aktif");
+    if (activeError) throw activeError;
 
-        if (!activeErrorAngkatan) activeCount = activeCountAngkatan ?? 0;
+    // Get mahasiswa bulan ini
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
 
-        // Get mahasiswa bulan ini
-        const startOfMonth = new Date();
-        startOfMonth.setDate(1);
-        startOfMonth.setHours(0, 0, 0, 0);
+    const { count: thisMonthCount, error: monthError } = await supabase
+      .from("mahasiswa")
+      .select("*", { count: "exact", head: true })
+      .gte("created_at", startOfMonth.toISOString());
 
-        const { count: thisMonthCountAngkatan, error: monthErrorAngkatan } = await supabase
-          .from("mahasiswa_angkatan")
-          .select("*", { count: "exact", head: true })
-          .gte("created_at", startOfMonth.toISOString());
-
-        if (!monthErrorAngkatan) thisMonthCount = thisMonthCountAngkatan ?? 0;
-      }
-    } catch (angkatanError) {
-      console.log("mahasiswa_angkatan table not available, trying mahasiswa table");
-      
-      // Fallback to mahasiswa table
-      try {
-        const { count: totalCountMhs, error: totalErrorMhs } = await supabase
-          .from("mahasiswa")
-          .select("*", { count: "exact", head: true });
-
-        if (!totalErrorMhs) totalCount = totalCountMhs ?? 0;
-
-        const { count: pendingCountMhs, error: pendingErrorMhs } = await supabase
-          .from("mahasiswa")
-          .select("*", { count: "exact", head: true })
-          .eq("status", "Menunggu");
-
-        if (!pendingErrorMhs) pendingCount = pendingCountMhs ?? 0;
-
-        const { count: activeCountMhs, error: activeErrorMhs } = await supabase
-          .from("mahasiswa")
-          .select("*", { count: "exact", head: true })
-          .eq("status", "Aktif");
-
-        if (!activeErrorMhs) activeCount = activeCountMhs ?? 0;
-
-        const startOfMonth = new Date();
-        startOfMonth.setDate(1);
-        startOfMonth.setHours(0, 0, 0, 0);
-
-        const { count: thisMonthCountMhs, error: monthErrorMhs } = await supabase
-          .from("mahasiswa")
-          .select("*", { count: "exact", head: true })
-          .gte("created_at", startOfMonth.toISOString());
-
-        if (!monthErrorMhs) thisMonthCount = thisMonthCountMhs ?? 0;
-      } catch (mahasiswaError) {
-        console.log("Both tables not available, using default values");
-      }
-    }
+    if (monthError) throw monthError;
 
     const stats: DashboardStat[] = [
       {
         title: "Total Mahasiswa",
-        value: String(totalCount),
+        value: String(totalCount ?? 0),
         change: "+0%",
         trend: "increase",
         icon: "students",
       },
       {
         title: "Menunggu Verifikasi",
-        value: String(pendingCount),
+        value: String(pendingCount ?? 0),
         change: "-0%",
         trend: "decrease",
         icon: "pending",
       },
       {
         title: "Disetujui",
-        value: String(activeCount),
+        value: String(activeCount ?? 0),
         change: "+0%",
         trend: "increase",
         icon: "approved",
       },
       {
         title: "Baru Bulan Ini",
-        value: String(thisMonthCount),
+        value: String(thisMonthCount ?? 0),
         change: "+0%",
         trend: "increase",
         icon: "new",
@@ -162,42 +114,16 @@ export async function getRecentActivities() {
   try {
     const supabase = await createServerSupabaseClient();
 
-    let students: any[] = [];
+    // Query dari tabel mahasiswa
+    const { data: students, error } = await supabase
+      .from("mahasiswa")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(10);
 
-    // Try mahasiswa_angkatan first
-    try {
-      const { data: studentsAngkatan, error: errorAngkatan } = await supabase
-        .from("mahasiswa_angkatan")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(10);
+    if (error) throw error;
 
-      if (!errorAngkatan && studentsAngkatan) {
-        students = studentsAngkatan.map(s => ({
-          ...s,
-          nama: s.full_name, // Map full_name to nama for consistency
-        }));
-      }
-    } catch (angkatanError) {
-      console.log("mahasiswa_angkatan not available, trying mahasiswa");
-      
-      // Fallback to mahasiswa table
-      try {
-        const { data: studentsMhs, error: errorMhs } = await supabase
-          .from("mahasiswa")
-          .select("*")
-          .order("created_at", { ascending: false })
-          .limit(10);
-
-        if (!errorMhs && studentsMhs) {
-          students = studentsMhs;
-        }
-      } catch (mahasiswaError) {
-        console.log("Both tables not available");
-      }
-    }
-
-    const activities: ActivityFeedItem[] = students.map((student) => {
+    const activities: ActivityFeedItem[] = (students || []).map((student) => {
       const createdDate = new Date(student.created_at);
       const now = new Date();
       const diffMs = now.getTime() - createdDate.getTime();
@@ -218,7 +144,7 @@ export async function getRecentActivities() {
 
       return {
         id: student.id,
-        fullName: student.nama || student.full_name,
+        fullName: student.nama,
         nim: student.nim,
         action: student.status === "Aktif" ? "Data mahasiswa disetujui" : "Menunggu verifikasi admin",
         timeLabel,
@@ -284,7 +210,7 @@ export async function getStudentGrowth() {
 }
 
 
-// Get mahasiswa per jurusan per tahun
+// Get mahasiswa per jurusan per tahun angkatan
 export async function getStudentsByJurusanAndYear(year?: number) {
   try {
     const supabase = await createServerSupabaseClient();
@@ -301,47 +227,23 @@ export async function getStudentsByJurusanAndYear(year?: number) {
       return { data: [], error: null }; // Return empty data instead of error
     }
 
-    // Get mahasiswa count per jurusan untuk tahun tertentu
-    const startDate = new Date(targetYear, 0, 1);
-    const endDate = new Date(targetYear, 11, 31, 23, 59, 59);
-
+    // Get mahasiswa count per jurusan untuk angkatan tertentu
     const results = await Promise.all(
       (jurusanList || []).map(async (jurusan) => {
-        let count = 0;
+        // Query dari tabel mahasiswa berdasarkan ANGKATAN, bukan created_at
+        const { count, error } = await supabase
+          .from("mahasiswa")
+          .select("*", { count: "exact", head: true })
+          .eq("jurusan", jurusan.nama_jurusan)
+          .eq("angkatan", String(targetYear)); // Filter by angkatan column
 
-        // Try mahasiswa_angkatan first
-        try {
-          const { count: countAngkatan, error: errorAngkatan } = await supabase
-            .from("mahasiswa_angkatan")
-            .select("*", { count: "exact", head: true })
-            .eq("study_program", jurusan.nama_jurusan)
-            .gte("created_at", startDate.toISOString())
-            .lte("created_at", endDate.toISOString());
-
-          if (!errorAngkatan) {
-            count = countAngkatan ?? 0;
-          }
-        } catch (angkatanError) {
-          // Fallback to mahasiswa table
-          try {
-            const { count: countMhs, error: errorMhs } = await supabase
-              .from("mahasiswa")
-              .select("*", { count: "exact", head: true })
-              .eq("jurusan", jurusan.nama_jurusan)
-              .gte("created_at", startDate.toISOString())
-              .lte("created_at", endDate.toISOString());
-
-            if (!errorMhs) {
-              count = countMhs ?? 0;
-            }
-          } catch (mahasiswaError) {
-            console.log("Both tables not available for jurusan data");
-          }
+        if (error) {
+          console.error("Error counting mahasiswa for jurusan:", error);
         }
 
         return {
           jurusan: jurusan.nama_jurusan,
-          count,
+          count: count ?? 0,
         };
       })
     );
@@ -356,38 +258,31 @@ export async function getStudentsByJurusanAndYear(year?: number) {
   }
 }
 
-// Get available years from mahasiswa data
+// Get available years from angkatan table or mahasiswa.angkatan column
 export async function getAvailableYears() {
   try {
     const supabase = await createServerSupabaseClient();
 
-    let data: any[] = [];
+    // Try to get from angkatan table first (master data)
+    const { data: angkatanData, error: angkatanError } = await supabase
+      .from("angkatan")
+      .select("tahun")
+      .eq("status", "Aktif")
+      .order("tahun", { ascending: false });
 
-    // Try mahasiswa_angkatan first
-    try {
-      const { data: dataAngkatan, error: errorAngkatan } = await supabase
-        .from("mahasiswa_angkatan")
-        .select("created_at")
-        .order("created_at", { ascending: true });
-
-      if (!errorAngkatan && dataAngkatan) {
-        data = dataAngkatan;
-      }
-    } catch (angkatanError) {
-      // Fallback to mahasiswa table
-      try {
-        const { data: dataMhs, error: errorMhs } = await supabase
-          .from("mahasiswa")
-          .select("created_at")
-          .order("created_at", { ascending: true });
-
-        if (!errorMhs && dataMhs) {
-          data = dataMhs;
-        }
-      } catch (mahasiswaError) {
-        console.log("Both tables not available for years");
-      }
+    if (!angkatanError && angkatanData && angkatanData.length > 0) {
+      const years = angkatanData.map(item => parseInt(item.tahun)).filter(year => !isNaN(year));
+      return { data: years, error: null };
     }
+
+    // Fallback: get from mahasiswa.angkatan column
+    const { data, error } = await supabase
+      .from("mahasiswa")
+      .select("angkatan")
+      .not("angkatan", "is", null)
+      .order("angkatan", { ascending: false });
+
+    if (error) throw error;
 
     if (!data || data.length === 0) {
       return { data: [new Date().getFullYear()], error: null };
@@ -395,11 +290,20 @@ export async function getAvailableYears() {
 
     const years = new Set<number>();
     data.forEach((item) => {
-      const year = new Date(item.created_at).getFullYear();
-      years.add(year);
+      if (item.angkatan) {
+        const year = parseInt(item.angkatan);
+        if (!isNaN(year)) {
+          years.add(year);
+        }
+      }
     });
 
     const sortedYears = Array.from(years).sort((a, b) => b - a);
+
+    // If no years found, return current year
+    if (sortedYears.length === 0) {
+      return { data: [new Date().getFullYear()], error: null };
+    }
 
     return { data: sortedYears, error: null };
   } catch (error) {

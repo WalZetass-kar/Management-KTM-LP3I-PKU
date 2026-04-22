@@ -17,14 +17,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { StudentStatusBadge } from "@/features/students/components/student-status-badge";
-import { studyPrograms } from "@/lib/mock-data";
 import type { StudentRecord } from "@/types/student";
+import type { JurusanRecord } from "@/types/jurusan";
 
 const itemsPerPage = 5;
 
 interface StudentDirectoryProps {
   students: StudentRecord[];
   availableAngkatan: string[];
+  availableJurusan: JurusanRecord[];
   currentFilters: {
     angkatan: string;
     search: string;
@@ -37,6 +38,7 @@ interface StudentDirectoryProps {
 export function StudentDirectory({
   students,
   availableAngkatan,
+  availableJurusan,
   currentFilters,
   errorMessage = null,
   noticeMessage = null,
@@ -148,7 +150,10 @@ export function StudentDirectory({
                 }}
                 options={[
                   { label: "Semua Jurusan", value: "all" },
-                  ...studyPrograms.map((program) => ({ label: program, value: program })),
+                  ...availableJurusan.map((jurusan) => ({ 
+                    label: jurusan.namaJurusan, 
+                    value: jurusan.namaJurusan 
+                  })),
                 ]}
               />
 

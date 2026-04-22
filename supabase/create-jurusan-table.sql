@@ -12,21 +12,23 @@ CREATE INDEX IF NOT EXISTS idx_jurusan_nama ON jurusan(nama_jurusan);
 -- Add RLS (Row Level Security) policies
 ALTER TABLE jurusan ENABLE ROW LEVEL SECURITY;
 
--- Create policy to allow authenticated users to read all records
-CREATE POLICY "Allow authenticated users to read jurusan" ON jurusan
-  FOR SELECT USING (auth.role() = 'authenticated');
+-- Create policies using is_admin_user() function
+CREATE POLICY "Admins can read jurusan" ON jurusan
+  FOR SELECT TO authenticated
+  USING ((SELECT public.is_admin_user()));
 
--- Create policy to allow authenticated users to insert records
-CREATE POLICY "Allow authenticated users to insert jurusan" ON jurusan
-  FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+CREATE POLICY "Admins can insert jurusan" ON jurusan
+  FOR INSERT TO authenticated
+  WITH CHECK ((SELECT public.is_admin_user()));
 
--- Create policy to allow authenticated users to update records
-CREATE POLICY "Allow authenticated users to update jurusan" ON jurusan
-  FOR UPDATE USING (auth.role() = 'authenticated');
+CREATE POLICY "Admins can update jurusan" ON jurusan
+  FOR UPDATE TO authenticated
+  USING ((SELECT public.is_admin_user()))
+  WITH CHECK ((SELECT public.is_admin_user()));
 
--- Create policy to allow authenticated users to delete records
-CREATE POLICY "Allow authenticated users to delete jurusan" ON jurusan
-  FOR DELETE USING (auth.role() = 'authenticated');
+CREATE POLICY "Admins can delete jurusan" ON jurusan
+  FOR DELETE TO authenticated
+  USING ((SELECT public.is_admin_user()));
 
 -- Insert sample data for testing (optional)
 INSERT INTO jurusan (nama_jurusan) VALUES

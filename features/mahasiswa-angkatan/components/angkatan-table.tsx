@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { deleteAngkatanAction } from "@/actions/angkatan";
 import { AngkatanFormModal } from "./angkatan-form-modal";
+import { DeleteAngkatanDialog } from "./delete-angkatan-dialog";
 import type { Angkatan } from "@/types/angkatan";
 
 interface AngkatanTableProps {
@@ -16,7 +16,6 @@ export function AngkatanTable({ angkatanList }: AngkatanTableProps) {
   const [selectedAngkatan, setSelectedAngkatan] = useState<Angkatan | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
-  const [isDeleting, setIsDeleting] = useState<number | null>(null);
 
   function handleEdit(angkatan: Angkatan) {
     setSelectedAngkatan(angkatan);
@@ -33,29 +32,6 @@ export function AngkatanTable({ angkatanList }: AngkatanTableProps) {
   function closeModal() {
     setIsModalOpen(false);
     setSelectedAngkatan(null);
-  }
-
-  async function handleDelete(angkatan: Angkatan) {
-    if (!confirm(`Apakah Anda yakin ingin menghapus angkatan ${angkatan.tahun}?`)) {
-      return;
-    }
-
-    setIsDeleting(angkatan.id);
-
-    try {
-      const formData = new FormData();
-      formData.append("id", angkatan.id.toString());
-      
-      const result = await deleteAngkatanAction(formData);
-      
-      if (result.error) {
-        alert(result.error);
-      }
-    } catch (error) {
-      alert("Terjadi kesalahan saat menghapus angkatan");
-    } finally {
-      setIsDeleting(null);
-    }
   }
 
   function formatDate(dateString: string) {
@@ -133,7 +109,7 @@ export function AngkatanTable({ angkatanList }: AngkatanTableProps) {
                       </td>
                       <td className="px-4 py-3">
                         <Badge 
-                          variant={angkatan.status === "Aktif" ? "default" : "secondary"}
+                          variant={angkatan.status === "Aktif" ? "success" : "neutral"}
                         >
                           {angkatan.status}
                         </Badge>
@@ -153,14 +129,7 @@ export function AngkatanTable({ angkatanList }: AngkatanTableProps) {
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleDelete(angkatan)}
-                            disabled={isDeleting === angkatan.id}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <DeleteAngkatanDialog angkatan={angkatan} />
                         </div>
                       </td>
                     </tr>

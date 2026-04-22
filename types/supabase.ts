@@ -1,6 +1,35 @@
 export interface Database {
   public: {
     Tables: {
+      angkatan: {
+        Row: {
+          id: number;
+          tahun: string;
+          nama_angkatan: string;
+          status: "Aktif" | "Tidak Aktif";
+          keterangan: string | null;
+          created_at: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: never;
+          tahun: string;
+          nama_angkatan: string;
+          status?: "Aktif" | "Tidak Aktif";
+          keterangan?: string | null;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          tahun?: string;
+          nama_angkatan?: string;
+          status?: "Aktif" | "Tidak Aktif";
+          keterangan?: string | null;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [];
+      };
       jurusan: {
         Row: {
           id: number;
@@ -26,45 +55,57 @@ export interface Database {
           id: number;
           nama: string;
           nim: string;
-          jurusan: string;
+          jurusan: string | null;
           jurusan_id: number | null;
+          angkatan: string | null;
+          angkatan_id: number | null;
           alamat: string;
           no_hp: string;
           foto_url: string | null;
           status: "Aktif" | "Menunggu" | "Tidak Aktif" | "Lulus" | "Cuti";
-          angkatan: string | null;
           created_at: string;
+          updated_at: string | null;
         };
         Insert: {
           id?: never;
           nama: string;
           nim: string;
-          jurusan?: string;
+          jurusan?: string | null;
           jurusan_id?: number | null;
+          angkatan?: string | null;
+          angkatan_id?: number | null;
           alamat: string;
           no_hp: string;
           foto_url?: string | null;
           status?: "Aktif" | "Menunggu" | "Tidak Aktif" | "Lulus" | "Cuti";
-          angkatan?: string | null;
           created_at?: string;
+          updated_at?: string | null;
         };
         Update: {
           nama?: string;
           nim?: string;
-          jurusan?: string;
+          jurusan?: string | null;
           jurusan_id?: number | null;
+          angkatan?: string | null;
+          angkatan_id?: number | null;
           alamat?: string;
           no_hp?: string;
           foto_url?: string | null;
           status?: "Aktif" | "Menunggu" | "Tidak Aktif" | "Lulus" | "Cuti";
-          angkatan?: string | null;
           created_at?: string;
+          updated_at?: string | null;
         };
         Relationships: [
           {
             foreignKeyName: "mahasiswa_jurusan_id_fkey";
             columns: ["jurusan_id"];
             referencedRelation: "jurusan";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "mahasiswa_angkatan_id_fkey";
+            columns: ["angkatan_id"];
+            referencedRelation: "angkatan";
             referencedColumns: ["id"];
           }
         ];

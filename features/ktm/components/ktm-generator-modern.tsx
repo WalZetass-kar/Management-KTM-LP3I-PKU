@@ -20,7 +20,6 @@ interface KtmGeneratorModernProps {
   students: StudentRecord[];
   availableAngkatan: string[];
   currentAngkatan: string;
-  source: string;
   errorMessage?: string | null;
 }
 
@@ -37,7 +36,6 @@ export function KtmGeneratorModern({
   students,
   availableAngkatan,
   currentAngkatan,
-  source,
   errorMessage = null,
 }: KtmGeneratorModernProps) {
   const [selectedNim, setSelectedNim] = useState("");
@@ -48,19 +46,6 @@ export function KtmGeneratorModern({
   const handleAngkatanChange = (angkatan: string) => {
     const url = new URL(window.location.href);
     url.searchParams.set("angkatan", angkatan);
-    url.searchParams.set("source", source);
-    window.location.href = url.toString();
-  };
-
-  // Handle source change
-  const handleSourceChange = (newSource: string) => {
-    const url = new URL(window.location.href);
-    url.searchParams.set("source", newSource);
-    if (newSource === "angkatan") {
-      url.searchParams.set("angkatan", currentAngkatan);
-    } else {
-      url.searchParams.delete("angkatan");
-    }
     window.location.href = url.toString();
   };
 
@@ -218,7 +203,7 @@ export function KtmGeneratorModern({
                 Generate KTM
               </CardTitle>
               <CardDescription>
-                Pilih sumber data dan angkatan untuk generate kartu mahasiswa
+                Pilih angkatan untuk generate kartu mahasiswa
               </CardDescription>
             </div>
           </div>
@@ -227,33 +212,17 @@ export function KtmGeneratorModern({
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">
-                Sumber Data
+                Angkatan
               </label>
               <Select
-                value={source}
-                onChange={(e) => handleSourceChange(e.target.value)}
-                options={[
-                  { label: "Mahasiswa Angkatan", value: "angkatan" },
-                  { label: "Data Mahasiswa Lama", value: "mahasiswa" },
-                ]}
+                value={currentAngkatan}
+                onChange={(e) => handleAngkatanChange(e.target.value)}
+                options={availableAngkatan.map(angkatan => ({
+                  label: `Angkatan ${angkatan}`,
+                  value: angkatan
+                }))}
               />
             </div>
-
-            {source === "angkatan" && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">
-                  Angkatan
-                </label>
-                <Select
-                  value={currentAngkatan}
-                  onChange={(e) => handleAngkatanChange(e.target.value)}
-                  options={availableAngkatan.map(angkatan => ({
-                    label: `Angkatan ${angkatan}`,
-                    value: angkatan
-                  }))}
-                />
-              </div>
-            )}
 
             <div className="flex items-end">
               <div className="rounded-lg bg-primary/5 px-3 py-2">
@@ -297,13 +266,13 @@ export function KtmGeneratorModern({
                   htmlFor="student-select-modern"
                   className="text-sm font-medium text-foreground"
                 >
-                  Mahasiswa {source === "angkatan" ? `Angkatan ${currentAngkatan}` : ""}
+                  Mahasiswa Angkatan {currentAngkatan}
                 </label>
                 <Select
                   id="student-select-modern"
                   value={selectedNim}
                   onChange={(e) => setSelectedNim(e.target.value)}
-                  placeholder={`Pilih mahasiswa ${source === "angkatan" ? `angkatan ${currentAngkatan}` : ""} untuk generate KTM`}
+                  placeholder={`Pilih mahasiswa angkatan ${currentAngkatan} untuk generate KTM`}
                   options={students.map((s) => ({
                     label: `${s.fullName} — ${s.nim} — ${s.studyProgram}`,
                     value: s.nim,
@@ -313,10 +282,7 @@ export function KtmGeneratorModern({
 
               {!errorMessage && students.length === 0 && (
                 <div className="rounded-2xl border bg-slate-50 px-4 py-3 text-sm text-muted-foreground">
-                  {source === "angkatan" 
-                    ? `Belum ada data mahasiswa untuk angkatan ${currentAngkatan}. Tambahkan mahasiswa angkatan terlebih dahulu.`
-                    : "Belum ada data mahasiswa. Tambahkan mahasiswa terlebih dahulu."
-                  }
+                  Belum ada data mahasiswa untuk angkatan {currentAngkatan}. Tambahkan mahasiswa angkatan terlebih dahulu.
                 </div>
               )}
 
@@ -346,14 +312,12 @@ export function KtmGeneratorModern({
                         {selectedStudent.studyProgram}
                       </dd>
                     </div>
-                    {source === "angkatan" && (
-                      <div className="flex gap-3">
-                        <dt className="w-20 text-muted-foreground">Angkatan</dt>
-                        <dd className="font-semibold text-primary">
-                          {currentAngkatan}
-                        </dd>
-                      </div>
-                    )}
+                    <div className="flex gap-3">
+                      <dt className="w-20 text-muted-foreground">Angkatan</dt>
+                      <dd className="font-semibold text-primary">
+                        {currentAngkatan}
+                      </dd>
+                    </div>
                     <div className="flex gap-3">
                       <dt className="w-20 text-muted-foreground">Status</dt>
                       <dd>
@@ -377,12 +341,6 @@ export function KtmGeneratorModern({
                 Informasi KTM
               </h3>
               <ul className="mt-4 space-y-2.5 text-sm leading-relaxed text-foreground/70">
-                <li className="flex items-start gap-2">
-                  <span className="mt-1 text-primary">•</span>
-                  <span>
-                    Pilih <strong className="text-foreground">sumber data</strong>: Mahasiswa Angkatan (terbaru) atau Data Mahasiswa Lama
-                  </span>
-                </li>
                 <li className="flex items-start gap-2">
                   <span className="mt-1 text-primary">•</span>
                   <span>

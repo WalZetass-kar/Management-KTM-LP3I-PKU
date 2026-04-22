@@ -1,9 +1,9 @@
-import { createClient } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { Angkatan, CreateAngkatanData, UpdateAngkatanData } from "@/types/angkatan";
 
 export async function getAngkatanList(): Promise<{ data: Angkatan[]; error: string | null }> {
   try {
-    const supabase = await createClient();
+    const supabase = await createServerSupabaseClient();
 
     const { data, error } = await supabase
       .from("angkatan")
@@ -24,7 +24,7 @@ export async function getAngkatanList(): Promise<{ data: Angkatan[]; error: stri
 
 export async function getActiveAngkatanList(): Promise<{ data: Angkatan[]; error: string | null }> {
   try {
-    const supabase = await createClient();
+    const supabase = await createServerSupabaseClient();
 
     const { data, error } = await supabase
       .from("angkatan")
@@ -46,7 +46,7 @@ export async function getActiveAngkatanList(): Promise<{ data: Angkatan[]; error
 
 export async function getAngkatanById(id: number): Promise<{ data: Angkatan | null; error: string | null }> {
   try {
-    const supabase = await createClient();
+    const supabase = await createServerSupabaseClient();
 
     const { data, error } = await supabase
       .from("angkatan")
@@ -68,7 +68,7 @@ export async function getAngkatanById(id: number): Promise<{ data: Angkatan | nu
 
 export async function createAngkatan(angkatanData: CreateAngkatanData): Promise<{ data: Angkatan | null; error: string | null }> {
   try {
-    const supabase = await createClient();
+    const supabase = await createServerSupabaseClient();
 
     const { data, error } = await supabase
       .from("angkatan")
@@ -90,7 +90,7 @@ export async function createAngkatan(angkatanData: CreateAngkatanData): Promise<
 
 export async function updateAngkatan(angkatanData: UpdateAngkatanData): Promise<{ data: Angkatan | null; error: string | null }> {
   try {
-    const supabase = await createClient();
+    const supabase = await createServerSupabaseClient();
 
     const { data, error } = await supabase
       .from("angkatan")
@@ -119,20 +119,25 @@ export async function updateAngkatan(angkatanData: UpdateAngkatanData): Promise<
 
 export async function deleteAngkatan(id: number): Promise<{ error: string | null }> {
   try {
-    const supabase = await createClient();
+    const supabase = await createServerSupabaseClient();
 
     // Check if angkatan is being used by any mahasiswa
-    const { data: mahasiswaCount, error: countError } = await supabase
+    const angkatanData = await getAngkatanById(id);
+    if (angkatanData.error || !angkatanData.data) {
+      return { error: "Angkatan tidak ditemukan" };
+    }
+
+    const { count, error: countError } = await supabase
       .from("mahasiswa")
       .select("id", { count: "exact", head: true })
-      .eq("angkatan", (await getAngkatanById(id)).data?.tahun);
+      .eq("angkatan", angkatanData.data.tahun);
 
     if (countError) {
       console.error("Error checking mahasiswa count:", countError);
       return { error: "Gagal memeriksa penggunaan angkatan" };
     }
 
-    if (mahasiswaCount && mahasiswaCount > 0) {
+    if (count && count > 0) {
       return { error: "Angkatan tidak dapat dihapus karena masih digunakan oleh mahasiswa" };
     }
 

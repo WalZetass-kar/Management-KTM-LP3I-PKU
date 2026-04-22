@@ -4,7 +4,7 @@ import { STUDENT_SESSION_COOKIE_NAME, verifyStudentSessionToken } from "@/lib/st
 import { getSupabasePublicConfig } from "@/lib/supabase/config";
 import type { Database } from "@/types/supabase";
 
-const publicPaths = ["/", "/login"];
+const publicPaths = ["/", "/login", "/verifikasi", "/generate-ktm"];
 
 function isPublicPath(pathname: string) {
   return publicPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
