@@ -288,25 +288,29 @@ export async function getAvailableAngkatanFromMahasiswa() {
   try {
     const supabase = await createServerSupabaseClient();
     
+    // Get active angkatan from the new angkatan table
     const { data, error } = await supabase
-      .from("mahasiswa")
-      .select("angkatan")
-      .not("angkatan", "is", null)
-      .order("angkatan", { ascending: false });
+      .from("angkatan")
+      .select("tahun")
+      .eq("status", "Aktif")
+      .order("tahun", { ascending: false });
 
     if (error) {
       throw error;
     }
 
-    // Get unique angkatan values
-    const uniqueAngkatan = [...new Set(data.map(item => item.angkatan))].filter(Boolean);
+    const angkatanList = data.map(item => item.tahun);
     
-    // Add default angkatan if not present
-    const defaultAngkatan = ["2023", "2024", "2025", "2026", "2027"];
-    const allAngkatan = [...new Set([...uniqueAngkatan, ...defaultAngkatan])].sort((a, b) => b.localeCompare(a));
+    // Add default angkatan if table is empty
+    if (angkatanList.length === 0) {
+      return {
+        data: ["2025", "2026", "2027"],
+        error: null as string | null,
+      };
+    }
 
     return {
-      data: allAngkatan,
+      data: angkatanList,
       error: null as string | null,
     };
   } catch (error) {

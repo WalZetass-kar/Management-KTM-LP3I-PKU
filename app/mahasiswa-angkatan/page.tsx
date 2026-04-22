@@ -1,38 +1,36 @@
-import { MahasiswaAngkatanDirectory } from "@/features/mahasiswa-angkatan/components/mahasiswa-angkatan-directory";
-import { getMahasiswaByAngkatan, getAvailableAngkatan } from "@/lib/mahasiswa-angkatan";
+import { AngkatanTable } from "@/features/mahasiswa-angkatan/components/angkatan-table";
+import { getAngkatanList } from "@/lib/angkatan";
 
-export const dynamic = "force-dynamic";
+export default async function MahasiswaAngkatanPage() {
+  const { data: angkatanList, error } = await getAngkatanList();
 
-interface MahasiswaAngkatanPageProps {
-  searchParams: Promise<{
-    angkatan?: string;
-    search?: string;
-    jurusan?: string;
-    status?: string;
-  }>;
-}
-
-export default async function MahasiswaAngkatanPage({ searchParams }: MahasiswaAngkatanPageProps) {
-  const resolvedSearchParams = await searchParams;
-  const selectedAngkatan = resolvedSearchParams.angkatan || "2025";
-  const searchQuery = resolvedSearchParams.search || "";
-  const jurusanFilter = resolvedSearchParams.jurusan || "";
-  const statusFilter = resolvedSearchParams.status || "";
-
-  const [mahasiswaResult, angkatanResult] = await Promise.all([
-    getMahasiswaByAngkatan(selectedAngkatan, searchQuery, jurusanFilter, statusFilter),
-    getAvailableAngkatan(),
-  ]);
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Manajemen Tahun Angkatan</h1>
+          <p className="mt-2 text-sm text-gray-600">
+            Kelola tahun angkatan yang tersedia dalam sistem
+          </p>
+        </div>
+        
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+          <p className="text-red-700">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <MahasiswaAngkatanDirectory
-      mahasiswa={mahasiswaResult.data}
-      availableAngkatan={angkatanResult.data}
-      currentAngkatan={selectedAngkatan}
-      searchQuery={searchQuery}
-      jurusanFilter={jurusanFilter}
-      statusFilter={statusFilter}
-      errorMessage={mahasiswaResult.error || angkatanResult.error}
-    />
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Manajemen Tahun Angkatan</h1>
+        <p className="mt-2 text-sm text-gray-600">
+          Kelola tahun angkatan yang tersedia dalam sistem. Tahun angkatan yang ditambahkan di sini akan muncul sebagai pilihan saat menambah mahasiswa.
+        </p>
+      </div>
+
+      <AngkatanTable angkatanList={angkatanList} />
+    </div>
   );
 }

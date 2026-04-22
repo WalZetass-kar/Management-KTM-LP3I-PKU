@@ -597,4 +597,3 @@ interface JurusanFormValues {
 Untuk pertanyaan atau issue, hubungi:
 - Developer: Tim Development KTM Management
 - Email: support@lp3i-pku.ac.id
-- Dokumentasi: `/DOKUMENTASI_SISTEM.md`

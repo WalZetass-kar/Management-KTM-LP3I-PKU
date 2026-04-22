@@ -1,5 +1,5 @@
-import { MahasiswaAngkatanSkeleton } from "@/features/mahasiswa-angkatan/components/mahasiswa-angkatan-skeleton";
+import { AngkatanSkeleton } from "@/features/mahasiswa-angkatan/components/angkatan-skeleton";
 
 export default function Loading() {
-  return <MahasiswaAngkatanSkeleton />;
+  return <AngkatanSkeleton />;
 }

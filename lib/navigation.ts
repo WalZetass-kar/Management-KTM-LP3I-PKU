@@ -23,9 +23,9 @@ export const navigationItems = [
     icon: Users,
   },
   {
-    label: "Mahasiswa Angkatan",
+    label: "Tahun Angkatan",
     href: "/mahasiswa-angkatan",
-    description: "Input dan kelola data mahasiswa berdasarkan angkatan.",
+    description: "Kelola tahun angkatan yang tersedia dalam sistem.",
     icon: GraduationCap,
   },
   {
@@ -78,8 +78,8 @@ const routeContent = [
   },
   {
     matcher: (pathname: string) => pathname.startsWith("/mahasiswa-angkatan"),
-    title: "Mahasiswa Angkatan",
-    description: "Input dan kelola data mahasiswa berdasarkan tahun angkatan.",
+    title: "Tahun Angkatan",
+    description: "Kelola tahun angkatan yang tersedia dalam sistem.",
   },
   {
     matcher: (pathname: string) => pathname === "/jurusan",
