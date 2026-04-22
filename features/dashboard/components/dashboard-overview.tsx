@@ -4,18 +4,27 @@ import Link from "next/link";
 import { Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatCard } from "@/features/dashboard/components/stat-card";
-import { StudentGrowthChart } from "@/features/dashboard/components/student-growth-chart";
 import { RecentActivityList } from "@/features/dashboard/components/recent-activity-list";
-import type { DashboardStat, ActivityFeedItem, StudentGrowthPoint } from "@/types/dashboard";
+import { JurusanChart } from "@/features/dashboard/components/jurusan-chart";
+import type { DashboardStat, ActivityFeedItem, JurusanChartData } from "@/types/dashboard";
 
 interface DashboardOverviewProps {
   stats: DashboardStat[];
   activities: ActivityFeedItem[];
-  growth: StudentGrowthPoint[];
+  jurusanData: JurusanChartData[];
+  availableYears: number[];
+  currentYear: number;
   errorMessage?: string | null;
 }
 
-export function DashboardOverview({ stats, activities, growth, errorMessage }: DashboardOverviewProps) {
+export function DashboardOverview({ 
+  stats, 
+  activities, 
+  jurusanData, 
+  availableYears, 
+  currentYear, 
+  errorMessage 
+}: DashboardOverviewProps) {
   return (
     <section className="space-y-8">
       {/* Landing Page Button */}
@@ -40,10 +49,16 @@ export function DashboardOverview({ stats, activities, growth, errorMessage }: D
         ))}
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-        <StudentGrowthChart data={growth} />
+      <div className="grid gap-6">
         <RecentActivityList activities={activities} />
       </div>
+
+      {/* Grafik Jurusan */}
+      <JurusanChart 
+        data={jurusanData} 
+        availableYears={availableYears} 
+        currentYear={currentYear} 
+      />
     </section>
   );
 }

@@ -1,5 +1,7 @@
 import {
+  BookOpen,
   CreditCard,
+  GraduationCap,
   LayoutDashboard,
   Settings,
   Shield,
@@ -19,6 +21,18 @@ export const navigationItems = [
     href: "/mahasiswa",
     description: "Kelola data mahasiswa dan status penerbitan KTM.",
     icon: Users,
+  },
+  {
+    label: "Mahasiswa Angkatan",
+    href: "/mahasiswa-angkatan",
+    description: "Input dan kelola data mahasiswa berdasarkan angkatan.",
+    icon: GraduationCap,
+  },
+  {
+    label: "Jurusan",
+    href: "/jurusan",
+    description: "Kelola data jurusan dan program studi.",
+    icon: BookOpen,
   },
   {
     label: "Generate KTM",
@@ -58,9 +72,19 @@ const routeContent = [
     description: "Lengkapi biodata mahasiswa sebelum proses verifikasi KTM.",
   },
   {
-    matcher: (pathname: string) => pathname.startsWith("/mahasiswa"),
+    matcher: (pathname: string) => pathname.startsWith("/mahasiswa") && !pathname.includes("angkatan"),
     title: "Data Mahasiswa",
     description: "Cari, filter, dan tinjau status mahasiswa dalam satu tempat.",
+  },
+  {
+    matcher: (pathname: string) => pathname.startsWith("/mahasiswa-angkatan"),
+    title: "Mahasiswa Angkatan",
+    description: "Input dan kelola data mahasiswa berdasarkan tahun angkatan.",
+  },
+  {
+    matcher: (pathname: string) => pathname === "/jurusan",
+    title: "Data Jurusan",
+    description: "Kelola data jurusan dan program studi yang tersedia.",
   },
   {
     matcher: (pathname: string) => pathname === "/generate-ktm",

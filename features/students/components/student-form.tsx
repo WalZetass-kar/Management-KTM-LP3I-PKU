@@ -21,6 +21,7 @@ const initialValues: StudentFormValues = {
   address: "",
   phoneNumber: "",
   status: "Menunggu",
+  angkatan: "2025",
 };
 
 interface StudentFormProps {
@@ -39,6 +40,7 @@ export function StudentForm({ mode, student }: StudentFormProps) {
           address: student.address,
           phoneNumber: student.phoneNumber,
           status: student.status,
+          angkatan: student.angkatan || "2025",
         }
       : initialValues,
   );
@@ -174,8 +176,8 @@ export function StudentForm({ mode, student }: StudentFormProps) {
               </div>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="space-y-2 md:col-span-2">
+            <div className="grid gap-6 md:grid-cols-3">
+              <div className="space-y-2 md:col-span-3">
                 <label htmlFor="fullName" className="text-sm font-medium text-foreground">
                   Nama Lengkap
                 </label>
@@ -206,6 +208,26 @@ export function StudentForm({ mode, student }: StudentFormProps) {
               </div>
 
               <div className="space-y-2">
+                <label htmlFor="angkatan" className="text-sm font-medium text-foreground">
+                  Angkatan
+                </label>
+                <Select
+                  id="angkatan"
+                  name="angkatan"
+                  value={formValues.angkatan}
+                  onChange={(event) => setFieldValue("angkatan", event.target.value)}
+                  placeholder="Pilih angkatan"
+                  options={[
+                    { label: "2023", value: "2023" },
+                    { label: "2024", value: "2024" },
+                    { label: "2025", value: "2025" },
+                    { label: "2026", value: "2026" },
+                    { label: "2027", value: "2027" },
+                  ]}
+                />
+              </div>
+
+              <div className="space-y-2">
                 <label htmlFor="studyProgram" className="text-sm font-medium text-foreground">
                   Jurusan
                 </label>
@@ -221,7 +243,7 @@ export function StudentForm({ mode, student }: StudentFormProps) {
                 {errors.studyProgram ? <p className="text-sm text-destructive">{errors.studyProgram}</p> : null}
               </div>
 
-              <div className="space-y-2 md:col-span-2">
+              <div className="space-y-2 md:col-span-3">
                 <label htmlFor="address" className="text-sm font-medium text-foreground">
                   Alamat
                 </label>
@@ -236,7 +258,7 @@ export function StudentForm({ mode, student }: StudentFormProps) {
                 {errors.address ? <p className="text-sm text-destructive">{errors.address}</p> : null}
               </div>
 
-              <div className="space-y-2 md:col-span-2">
+              <div className="space-y-2 md:col-span-3">
                 <label htmlFor="phoneNumber" className="text-sm font-medium text-foreground">
                   Nomor HP
                 </label>
@@ -252,7 +274,7 @@ export function StudentForm({ mode, student }: StudentFormProps) {
                 {errors.phoneNumber ? <p className="text-sm text-destructive">{errors.phoneNumber}</p> : null}
               </div>
 
-              <div className="space-y-2 md:col-span-2">
+              <div className="space-y-2 md:col-span-3">
                 <label htmlFor="status" className="text-sm font-medium text-foreground">
                   Status
                 </label>
@@ -264,6 +286,9 @@ export function StudentForm({ mode, student }: StudentFormProps) {
                   options={[
                     { label: "Menunggu", value: "Menunggu" },
                     { label: "Aktif", value: "Aktif" },
+                    { label: "Tidak Aktif", value: "Tidak Aktif" },
+                    { label: "Lulus", value: "Lulus" },
+                    { label: "Cuti", value: "Cuti" },
                   ]}
                 />
               </div>

@@ -1,16 +1,28 @@
 import { StudentDirectory } from "@/features/students/components/student-directory";
-import { getMahasiswaList } from "@/lib/mahasiswa";
+import { getMahasiswaList, getMahasiswaByFilter, getAvailableAngkatanFromMahasiswa } from "@/lib/mahasiswa";
 
 interface StudentsPageProps {
   searchParams: Promise<{
     status?: string;
+    angkatan?: string;
+    search?: string;
+    jurusan?: string;
   }>;
 }
 
 export default async function StudentsPage({ searchParams }: StudentsPageProps) {
-  const [{ data, error }, resolvedSearchParams] = await Promise.all([
-    getMahasiswaList(),
-    searchParams,
+  const resolvedSearchParams = await searchParams;
+  
+  // Get available angkatan and filtered data
+  const [angkatanResult, mahasiswaResult] = await Promise.all([
+    getAvailableAngkatanFromMahasiswa(),
+    resolvedSearchParams.angkatan || resolvedSearchParams.search || resolvedSearchParams.jurusan
+      ? getMahasiswaByFilter({
+          angkatan: resolvedSearchParams.angkatan,
+          search: resolvedSearchParams.search,
+          jurusan: resolvedSearchParams.jurusan,
+        })
+      : getMahasiswaList(),
   ]);
 
   const noticeMessage =
@@ -22,8 +34,14 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
 
   return (
     <StudentDirectory
-      students={data}
-      errorMessage={error}
+      students={mahasiswaResult.data}
+      availableAngkatan={angkatanResult.data}
+      currentFilters={{
+        angkatan: resolvedSearchParams.angkatan || "",
+        search: resolvedSearchParams.search || "",
+        jurusan: resolvedSearchParams.jurusan || "",
+      }}
+      errorMessage={mahasiswaResult.error || angkatanResult.error}
       noticeMessage={noticeMessage}
     />
   );

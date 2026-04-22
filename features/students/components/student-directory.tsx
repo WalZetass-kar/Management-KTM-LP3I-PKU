@@ -24,18 +24,27 @@ const itemsPerPage = 5;
 
 interface StudentDirectoryProps {
   students: StudentRecord[];
+  availableAngkatan: string[];
+  currentFilters: {
+    angkatan: string;
+    search: string;
+    jurusan: string;
+  };
   errorMessage?: string | null;
   noticeMessage?: string | null;
 }
 
 export function StudentDirectory({
   students,
+  availableAngkatan,
+  currentFilters,
   errorMessage = null,
   noticeMessage = null,
 }: StudentDirectoryProps) {
   const router = useRouter();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedProgram, setSelectedProgram] = useState("all");
+  const [searchTerm, setSearchTerm] = useState(currentFilters.search);
+  const [selectedProgram, setSelectedProgram] = useState(currentFilters.jurusan || "all");
+  const [selectedAngkatan, setSelectedAngkatan] = useState(currentFilters.angkatan || "all");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [feedbackMessage, setFeedbackMessage] = useState(errorMessage ?? noticeMessage ?? "");
@@ -44,14 +53,31 @@ export function StudentDirectory({
   );
   const [isPending, startTransition] = useTransition();
 
-  const filteredStudents = students.filter((student) => {
-    const matchesSearch =
-      student.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.nim.includes(searchTerm);
-    const matchesProgram = selectedProgram === "all" || student.studyProgram === selectedProgram;
-    const matchesStatus = selectedStatus === "all" || student.status === selectedStatus;
+  // Handle filter changes with URL updates
+  const handleFilterChange = (key: string, value: string) => {
+    const url = new URL(window.location.href);
+    if (value && value !== "all") {
+      url.searchParams.set(key, value);
+    } else {
+      url.searchParams.delete(key);
+    }
+    router.push(url.toString());
+  };
 
-    return matchesSearch && matchesProgram && matchesStatus;
+  const handleSearch = () => {
+    const url = new URL(window.location.href);
+    if (searchTerm.trim()) {
+      url.searchParams.set("search", searchTerm.trim());
+    } else {
+      url.searchParams.delete("search");
+    }
+    router.push(url.toString());
+  };
+
+  // Client-side filtering for status only (since it's not in URL params yet)
+  const filteredStudents = students.filter((student) => {
+    const matchesStatus = selectedStatus === "all" || student.status === selectedStatus;
+    return matchesStatus;
   });
 
   const totalPages = Math.max(1, Math.ceil(filteredStudents.length / itemsPerPage));
@@ -84,27 +110,47 @@ export function StudentDirectory({
                   setSearchTerm(event.target.value);
                   setCurrentPage(1);
                 }}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 className="pl-10"
                 placeholder="Cari berdasarkan nama atau NIM"
               />
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-3">
               <div className="relative">
                 <Filter className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Select
-                  value={selectedProgram}
+                  value={selectedAngkatan}
                   onChange={(event) => {
-                    setSelectedProgram(event.target.value);
+                    const value = event.target.value;
+                    setSelectedAngkatan(value);
                     setCurrentPage(1);
+                    handleFilterChange("angkatan", value);
                   }}
                   className="pl-9"
                   options={[
-                    { label: "Semua Jurusan", value: "all" },
-                    ...studyPrograms.map((program) => ({ label: program, value: program })),
+                    { label: "Semua Angkatan", value: "all" },
+                    ...availableAngkatan.map((angkatan) => ({ 
+                      label: `Angkatan ${angkatan}`, 
+                      value: angkatan 
+                    })),
                   ]}
                 />
               </div>
+
+              <Select
+                value={selectedProgram}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setSelectedProgram(value);
+                  setCurrentPage(1);
+                  handleFilterChange("jurusan", value);
+                }}
+                options={[
+                  { label: "Semua Jurusan", value: "all" },
+                  ...studyPrograms.map((program) => ({ label: program, value: program })),
+                ]}
+              />
 
               <Select
                 value={selectedStatus}
@@ -116,9 +162,17 @@ export function StudentDirectory({
                   { label: "Semua Status", value: "all" },
                   { label: "Aktif", value: "Aktif" },
                   { label: "Menunggu", value: "Menunggu" },
+                  { label: "Tidak Aktif", value: "Tidak Aktif" },
+                  { label: "Lulus", value: "Lulus" },
+                  { label: "Cuti", value: "Cuti" },
                 ]}
               />
             </div>
+
+            <Button onClick={handleSearch} variant="outline" className="w-full sm:w-auto">
+              <Search className="h-4 w-4 mr-2" />
+              Cari
+            </Button>
           </div>
 
           <Button href="/mahasiswa/tambah" className="w-full xl:w-auto">
@@ -136,6 +190,7 @@ export function StudentDirectory({
                 <TableHead className="w-20">Foto</TableHead>
                 <TableHead>Mahasiswa</TableHead>
                 <TableHead>NIM</TableHead>
+                <TableHead>Angkatan</TableHead>
                 <TableHead>Jurusan</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Dibuat</TableHead>
@@ -145,7 +200,7 @@ export function StudentDirectory({
             <TableBody>
               {visibleStudents.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
+                  <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
                     Tidak ada data mahasiswa yang cocok dengan filter saat ini.
                   </TableCell>
                 </TableRow>
@@ -172,6 +227,15 @@ export function StudentDirectory({
                     </div>
                   </TableCell>
                   <TableCell>{student.nim}</TableCell>
+                  <TableCell>
+                    {student.angkatan ? (
+                      <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+                        {student.angkatan}
+                      </span>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">-</span>
+                    )}
+                  </TableCell>
                   <TableCell>{student.studyProgram}</TableCell>
                   <TableCell>
                     <StudentStatusBadge status={student.status} />

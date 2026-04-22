@@ -434,8 +434,7 @@ cp .env.example .env.local
 ```bash
 # Jalankan SQL files di Supabase SQL Editor:
 # 1. supabase/schema.sql
-# 2. supabase/insert-data.sql
-# 3. supabase/add-photo-url-column.sql
+# 2. supabase/add-photo-url-column.sql
 ```
 
 5. **Run Development Server**

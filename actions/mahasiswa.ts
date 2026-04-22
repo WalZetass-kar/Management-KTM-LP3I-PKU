@@ -27,7 +27,6 @@ function revalidateMahasiswaRoutes() {
   revalidatePath("/mahasiswa");
   revalidatePath("/generate-ktm");
   revalidatePath("/verifikasi");
-  revalidatePath("/supabase-test");
 }
 
 export async function createMahasiswaAction(

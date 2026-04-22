@@ -40,7 +40,7 @@ export function DashboardSidebar({ isOpen, onClose }: DashboardSidebarProps) {
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-transform duration-300",
+          "fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-transform duration-300 overflow-hidden",
           isOpen ? "translate-x-0" : "-translate-x-full",
           "lg:translate-x-0",
         )}
@@ -64,7 +64,7 @@ export function DashboardSidebar({ isOpen, onClose }: DashboardSidebarProps) {
           </button>
         </div>
 
-        <nav className="flex-1 space-y-2 px-4 py-6">
+        <nav className="flex-1 space-y-2 px-4 py-6 overflow-y-auto">
           {navigationItems.map((item) => {
             const isActive = isItemActive(pathname, item.href);
             const Icon = item.icon;

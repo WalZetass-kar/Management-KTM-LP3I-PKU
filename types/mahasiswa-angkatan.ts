@@ -1,29 +1,25 @@
-export type StudentStatus = "Aktif" | "Menunggu" | "Tidak Aktif" | "Lulus" | "Cuti";
+import type { StudentStatus } from "./student";
 
-export interface StudentRecord {
+export interface MahasiswaAngkatanRecord {
   id: number;
   fullName: string;
   nim: string;
+  angkatan: string;
   studyProgram: string;
   status: StudentStatus;
   photoUrl: string | null;
   address: string;
   phoneNumber: string;
-  angkatan?: string;
   createdAt: string;
 }
 
-export interface VerificationRecord extends StudentRecord {
-  validUntil: string;
-  issuedDate: string;
-}
-
-export interface StudentFormValues {
+export interface MahasiswaAngkatanFormValues {
   fullName: string;
   nim: string;
+  angkatan: string;
   studyProgram: string;
   address: string;
   phoneNumber: string;
   status: StudentStatus;
-  angkatan: string;
+  photoUrl?: string | null;
 }

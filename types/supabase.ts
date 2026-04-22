@@ -1,38 +1,112 @@
 export interface Database {
   public: {
     Tables: {
+      jurusan: {
+        Row: {
+          id: number;
+          nama_jurusan: string;
+          created_at: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: never;
+          nama_jurusan: string;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          nama_jurusan?: string;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [];
+      };
       mahasiswa: {
         Row: {
           id: number;
           nama: string;
           nim: string;
           jurusan: string;
+          jurusan_id: number | null;
           alamat: string;
           no_hp: string;
           foto_url: string | null;
-          status: "Aktif" | "Menunggu";
+          status: "Aktif" | "Menunggu" | "Tidak Aktif" | "Lulus" | "Cuti";
+          angkatan: string | null;
           created_at: string;
         };
         Insert: {
           id?: never;
           nama: string;
           nim: string;
-          jurusan: string;
+          jurusan?: string;
+          jurusan_id?: number | null;
           alamat: string;
           no_hp: string;
           foto_url?: string | null;
-          status?: "Aktif" | "Menunggu";
+          status?: "Aktif" | "Menunggu" | "Tidak Aktif" | "Lulus" | "Cuti";
+          angkatan?: string | null;
           created_at?: string;
         };
         Update: {
           nama?: string;
           nim?: string;
           jurusan?: string;
+          jurusan_id?: number | null;
           alamat?: string;
           no_hp?: string;
           foto_url?: string | null;
-          status?: "Aktif" | "Menunggu";
+          status?: "Aktif" | "Menunggu" | "Tidak Aktif" | "Lulus" | "Cuti";
+          angkatan?: string | null;
           created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "mahasiswa_jurusan_id_fkey";
+            columns: ["jurusan_id"];
+            referencedRelation: "jurusan";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      mahasiswa_angkatan: {
+        Row: {
+          id: number;
+          full_name: string;
+          nim: string;
+          angkatan: string;
+          study_program: string;
+          status: "Aktif" | "Menunggu" | "Tidak Aktif" | "Lulus" | "Cuti";
+          photo_url: string | null;
+          address: string;
+          phone_number: string;
+          created_at: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: never;
+          full_name: string;
+          nim: string;
+          angkatan: string;
+          study_program: string;
+          status?: "Aktif" | "Menunggu" | "Tidak Aktif" | "Lulus" | "Cuti";
+          photo_url?: string | null;
+          address: string;
+          phone_number: string;
+          created_at?: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          full_name?: string;
+          nim?: string;
+          angkatan?: string;
+          study_program?: string;
+          status?: "Aktif" | "Menunggu" | "Tidak Aktif" | "Lulus" | "Cuti";
+          photo_url?: string | null;
+          address?: string;
+          phone_number?: string;
+          created_at?: string;
+          updated_at?: string | null;
         };
         Relationships: [];
       };

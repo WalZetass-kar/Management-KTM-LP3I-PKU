@@ -23,6 +23,7 @@ export function mapMahasiswaRowToStudentRecord(row: MahasiswaRow): StudentRecord
     phoneNumber: row.no_hp,
     photoUrl: row.foto_url,
     status: row.status,
+    angkatan: row.angkatan || undefined,
     createdAt: row.created_at,
   };
 }
@@ -35,6 +36,7 @@ export function mapStudentToFormValues(student: StudentRecord): StudentFormValue
     address: student.address,
     phoneNumber: student.phoneNumber,
     status: student.status,
+    angkatan: student.angkatan || "2025",
   };
 }
 
@@ -53,6 +55,7 @@ export function normalizeStudentFormValues(formData: FormData): StudentFormValue
     address: readString(formData, "address"),
     phoneNumber: readString(formData, "phoneNumber"),
     status: status === "Aktif" ? "Aktif" : "Menunggu",
+    angkatan: readString(formData, "angkatan") || "2025",
   };
 }
 
@@ -191,6 +194,7 @@ export function buildMahasiswaInsert(values: StudentFormValues, photoUrl: string
     no_hp: values.phoneNumber,
     foto_url: photoUrl,
     status: values.status,
+    angkatan: values.angkatan,
   };
 }
 
@@ -203,6 +207,7 @@ export function buildMahasiswaUpdate(values: StudentFormValues, photoUrl: string
     no_hp: values.phoneNumber,
     foto_url: photoUrl,
     status: values.status,
+    angkatan: values.angkatan,
   };
 }
 
@@ -228,6 +233,86 @@ export async function getMahasiswaList() {
     return {
       data: [] as StudentRecord[],
       error: getErrorMessage(error, "Gagal memuat data mahasiswa dari Supabase."),
+    };
+  }
+}
+
+export async function getMahasiswaByFilter(filters: {
+  angkatan?: string;
+  search?: string;
+  jurusan?: string;
+}) {
+  noStore();
+
+  try {
+    const supabase = await createServerSupabaseClient();
+    
+    let query = supabase
+      .from("mahasiswa")
+      .select("*");
+
+    // Apply filters
+    if (filters.angkatan) {
+      query = query.eq("angkatan", filters.angkatan);
+    }
+
+    if (filters.search) {
+      query = query.or(`nama.ilike.%${filters.search}%,nim.ilike.%${filters.search}%`);
+    }
+
+    if (filters.jurusan) {
+      query = query.eq("jurusan", filters.jurusan);
+    }
+
+    const { data, error } = await query.order("created_at", { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    return {
+      data: data.map(mapMahasiswaRowToStudentRecord),
+      error: null as string | null,
+    };
+  } catch (error) {
+    return {
+      data: [] as StudentRecord[],
+      error: getErrorMessage(error, "Gagal memuat data mahasiswa dari Supabase."),
+    };
+  }
+}
+
+export async function getAvailableAngkatanFromMahasiswa() {
+  noStore();
+
+  try {
+    const supabase = await createServerSupabaseClient();
+    
+    const { data, error } = await supabase
+      .from("mahasiswa")
+      .select("angkatan")
+      .not("angkatan", "is", null)
+      .order("angkatan", { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    // Get unique angkatan values
+    const uniqueAngkatan = [...new Set(data.map(item => item.angkatan))].filter(Boolean);
+    
+    // Add default angkatan if not present
+    const defaultAngkatan = ["2023", "2024", "2025", "2026", "2027"];
+    const allAngkatan = [...new Set([...uniqueAngkatan, ...defaultAngkatan])].sort((a, b) => b.localeCompare(a));
+
+    return {
+      data: allAngkatan,
+      error: null as string | null,
+    };
+  } catch (error) {
+    return {
+      data: ["2025", "2026", "2027"] as string[],
+      error: getErrorMessage(error, "Gagal mengambil daftar angkatan."),
     };
   }
 }

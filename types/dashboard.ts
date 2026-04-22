@@ -23,3 +23,8 @@ export interface ActivityFeedItem {
   timeLabel: string;
   status: ActivityStatus;
 }
+
+export interface JurusanChartData {
+  jurusan: string;
+  count: number;
+}

@@ -3,7 +3,6 @@
 ## Files
 
 - **schema.sql** - Main database schema (tables, policies, functions)
-- **insert-data.sql** - Sample mahasiswa data for testing
 
 ## Setup
 
