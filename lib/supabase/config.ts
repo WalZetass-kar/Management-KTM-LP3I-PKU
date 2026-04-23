@@ -24,6 +24,12 @@ function requireEnv(name: SupabaseEnvName) {
   const value = readEnv(name);
 
   if (!value) {
+    // In browser, try to get from window object as fallback
+    if (typeof window !== "undefined" && name.startsWith("NEXT_PUBLIC_")) {
+      const windowValue = (window as any)[name];
+      if (windowValue) return windowValue;
+    }
+    
     throw new Error(`Missing required Supabase environment variable: ${name}`);
   }
 

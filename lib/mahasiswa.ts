@@ -239,6 +239,33 @@ export async function getMahasiswaList() {
   }
 }
 
+export async function getMahasiswaByStatus(status: string) {
+  noStore();
+
+  try {
+    const supabase = await createServerSupabaseClient();
+    const { data, error } = await supabase
+      .from("mahasiswa")
+      .select("*")
+      .eq("status", status)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    return {
+      data: data.map(mapMahasiswaRowToStudentRecord),
+      error: null as string | null,
+    };
+  } catch (error) {
+    return {
+      data: [] as StudentRecord[],
+      error: getErrorMessage(error, "Gagal memuat data mahasiswa dari Supabase."),
+    };
+  }
+}
+
 export async function getMahasiswaByFilter(filters: {
   angkatan?: string;
   search?: string;

@@ -75,22 +75,26 @@ export async function POST(request: NextRequest) {
     const photoUrl = urlData.publicUrl;
 
     // Update user profile with photo URL
-    const { error: updateError } = await supabase
+    const { data: updateData, error: updateError } = await supabase
       .from("user_profiles")
       .update({ photo_url: photoUrl })
-      .eq("id", user.id);
+      .eq("id", user.id)
+      .select();
 
     if (updateError) {
       console.error("Update error:", updateError);
       return NextResponse.json(
-        { error: "Failed to update profile" },
+        { error: "Failed to update profile", details: updateError.message },
         { status: 500 }
       );
     }
 
+    console.log("Profile updated successfully:", updateData);
+
     return NextResponse.json({
       url: photoUrl,
       message: "Profile photo updated successfully",
+      data: updateData,
     });
   } catch (error) {
     console.error("Error uploading profile photo:", error);

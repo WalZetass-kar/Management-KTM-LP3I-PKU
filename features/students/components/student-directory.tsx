@@ -237,8 +237,8 @@ Jane Smith,2024010102,Sistem Informasi,2024,Jl. Contoh No. 2,08123456790,Aktif`;
                 }}
                 options={[
                   { label: "Semua Status", value: "all" },
-                  { label: "Aktif", value: "Aktif" },
                   { label: "Menunggu", value: "Menunggu" },
+                  { label: "Aktif", value: "Aktif" },
                   { label: "Tidak Aktif", value: "Tidak Aktif" },
                   { label: "Lulus", value: "Lulus" },
                   { label: "Cuti", value: "Cuti" },

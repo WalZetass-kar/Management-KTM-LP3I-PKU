@@ -169,3 +169,29 @@ export async function deleteMahasiswaAction(studentId: number) {
     };
   }
 }
+
+export async function autoUpdateGraduationStatusAction() {
+  try {
+    await ensureAuthenticatedAdmin();
+    const supabase = await createServerSupabaseClient();
+
+    // Panggil fungsi database untuk auto-update status
+    const { error } = await supabase.rpc('auto_update_status_lulus');
+
+    if (error) {
+      throw error;
+    }
+
+    revalidateMahasiswaRoutes();
+
+    return {
+      status: "success" as const,
+      message: "Status kelulusan mahasiswa berhasil diperbarui otomatis.",
+    };
+  } catch (error) {
+    return {
+      status: "error" as const,
+      message: getErrorMessage(error, "Gagal memperbarui status kelulusan."),
+    };
+  }
+}

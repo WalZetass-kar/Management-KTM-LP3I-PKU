@@ -51,6 +51,11 @@ export function AdminProfilePanel({ admin }: AdminProfilePanelProps) {
       const data = await response.json();
       setPhotoUrl(data.url);
       setMessage("Foto profil berhasil diupdate");
+      
+      // Refresh page setelah 1 detik untuk update topbar
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (error) {
       setMessage("Gagal mengupload foto. Silakan coba lagi.");
       console.error(error);

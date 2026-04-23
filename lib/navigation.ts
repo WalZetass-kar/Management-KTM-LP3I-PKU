@@ -8,55 +8,72 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react";
+import type { Permission } from "@/hooks/use-permissions";
 
-export const navigationItems = [
+interface NavigationItem {
+  label: string;
+  href: string;
+  description: string;
+  icon: any;
+  permission?: Permission;
+}
+
+export const navigationItems: NavigationItem[] = [
   {
     label: "Dashboard",
     href: "/dashboard",
     description: "Ringkasan performa dan aktivitas terbaru.",
     icon: LayoutDashboard,
+    permission: "view_dashboard",
   },
   {
     label: "Data Mahasiswa",
     href: "/mahasiswa",
     description: "Kelola data mahasiswa dan status penerbitan KTM.",
     icon: Users,
+    permission: "manage_students",
   },
   {
     label: "Tahun Angkatan",
     href: "/mahasiswa-angkatan",
     description: "Kelola tahun angkatan yang tersedia dalam sistem.",
     icon: GraduationCap,
+    permission: "manage_angkatan",
   },
   {
     label: "Jurusan",
     href: "/jurusan",
     description: "Kelola data jurusan dan program studi.",
     icon: BookOpen,
+    permission: "manage_jurusan",
   },
   {
     label: "Generate KTM",
     href: "/generate-ktm",
     description: "Pilih mahasiswa dan siapkan kartu untuk dicetak.",
     icon: CreditCard,
+    permission: "generate_ktm",
   },
   {
     label: "Verifikasi",
     href: "/verifikasi",
     description: "Validasi kartu mahasiswa melalui NIM atau QR.",
     icon: ShieldCheck,
+    permission: "verify_students",
   },
   {
     label: "Admin Management",
     href: "/admin-management",
     description: "Kelola akun admin dan super admin sistem.",
     icon: Shield,
+    permission: "manage_admins",
   },
   {
     label: "Pengaturan",
     href: "/settings",
     description: "Atur preferensi admin, keamanan, dan sistem.",
     icon: Settings,
+    permission: "manage_settings",
   },
 ];
 

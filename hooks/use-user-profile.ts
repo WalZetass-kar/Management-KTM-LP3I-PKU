@@ -1,17 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { deriveAdminProfileFromUser } from "@/lib/auth-profile";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 
 interface UserProfile {
   username: string;
   role: "admin" | "super_admin";
+  photoUrl?: string | null;
 }
 
 export function useUserProfile() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const refresh = useCallback(() => {
+    setRefreshKey((prev) => prev + 1);
+  }, []);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -35,10 +41,10 @@ export function useUserProfile() {
 
         const metadataProfile = deriveAdminProfileFromUser(user);
 
-        // Get user profile
+        // Get user profile with cache busting
         const { data, error } = await supabase
           .from("user_profiles")
-          .select("username, role")
+          .select("username, role, photo_url")
           .eq("id", user.id)
           .maybeSingle();
 
@@ -46,7 +52,12 @@ export function useUserProfile() {
           console.error("Error fetching user profile:", error);
           setProfile(metadataProfile);
         } else if (data) {
-          setProfile(data);
+          console.log("Fetched profile data:", data); // Debug log
+          setProfile({
+            username: data.username,
+            role: data.role,
+            photoUrl: data.photo_url,
+          });
         } else {
           setProfile(metadataProfile);
         }
@@ -59,7 +70,7 @@ export function useUserProfile() {
     };
 
     fetchProfile();
-  }, []);
+  }, [refreshKey]);
 
-  return { profile, isLoading };
+  return { profile, isLoading, refresh };
 }

@@ -1,8 +1,29 @@
-import { VerificationWorkspace } from "@/features/verification/components/verification-workspace";
-import { getMahasiswaList } from "@/lib/mahasiswa";
+import { VerificationPanel } from "@/features/verification/components/verification-panel";
+import { getMahasiswaByStatus } from "@/lib/mahasiswa";
 
-export default async function VerificationPage() {
-  const { data, error } = await getMahasiswaList();
+export const dynamic = "force-dynamic";
 
-  return <VerificationWorkspace students={data} errorMessage={error} />;
+interface VerificationPageProps {
+  searchParams: Promise<{
+    status?: string;
+  }>;
+}
+
+export default async function VerificationPage({ searchParams }: VerificationPageProps) {
+  const resolvedSearchParams = await searchParams;
+  
+  const mahasiswaResult = await getMahasiswaByStatus("Menunggu");
+
+  const noticeMessage =
+    resolvedSearchParams.status === "verified"
+      ? "Mahasiswa berhasil diverifikasi."
+      : null;
+
+  return (
+    <VerificationPanel
+      students={mahasiswaResult.data}
+      errorMessage={mahasiswaResult.error}
+      noticeMessage={noticeMessage}
+    />
+  );
 }

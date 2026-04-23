@@ -12,9 +12,11 @@ import {
   FileSpreadsheet,
   AlertCircle,
   CheckCircle2,
-  Loader2
+  Loader2,
+  GraduationCap
 } from "lucide-react";
 import type { DashboardStat } from "@/types/dashboard";
+import { autoUpdateGraduationStatusAction } from "@/actions/mahasiswa";
 
 interface SettingsPanelProps {
   stats: DashboardStat[];
@@ -26,7 +28,12 @@ interface SettingsPanelProps {
 export function SettingsPanel({ stats, totalMahasiswa, totalJurusan, totalAngkatan }: SettingsPanelProps) {
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [isUpdatingGraduation, setIsUpdatingGraduation] = useState(false);
   const [importStatus, setImportStatus] = useState<{
+    type: "success" | "error" | null;
+    message: string;
+  }>({ type: null, message: "" });
+  const [graduationStatus, setGraduationStatus] = useState<{
     type: "success" | "error" | null;
     message: string;
   }>({ type: null, message: "" });
@@ -109,6 +116,36 @@ Jane Smith,2024010102,Sistem Informasi,2024,Jl. Contoh No. 2,08123456790,Aktif`;
     a.click();
     window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
+  };
+
+  const handleAutoUpdateGraduation = async () => {
+    if (!window.confirm("Update otomatis status kelulusan untuk mahasiswa yang sudah 2 tahun kuliah?")) {
+      return;
+    }
+
+    setIsUpdatingGraduation(true);
+    setGraduationStatus({ type: null, message: "" });
+
+    try {
+      const result = await autoUpdateGraduationStatusAction();
+      setGraduationStatus({
+        type: result.status === "success" ? "success" : "error",
+        message: result.message,
+      });
+
+      if (result.status === "success") {
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      }
+    } catch (error) {
+      setGraduationStatus({
+        type: "error",
+        message: "Terjadi kesalahan saat update status",
+      });
+    } finally {
+      setIsUpdatingGraduation(false);
+    }
   };
 
   return (
@@ -275,6 +312,70 @@ Jane Smith,2024010102,Sistem Informasi,2024,Jl. Contoh No. 2,08123456790,Aktif`;
               />
             </label>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Auto Update Status Lulus */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <GraduationCap className="h-5 w-5 text-purple-600" />
+            <CardTitle>Update Status Kelulusan Otomatis</CardTitle>
+          </div>
+          <CardDescription>
+            Sistem otomatis mengubah status mahasiswa menjadi "Lulus" setelah 2 tahun dari angkatan
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Status Message */}
+          {graduationStatus.type && (
+            <div
+              className={`p-4 rounded-lg border flex items-start gap-3 ${
+                graduationStatus.type === "success"
+                  ? "bg-green-50 border-green-200 text-green-800"
+                  : "bg-red-50 border-red-200 text-red-800"
+              }`}
+            >
+              {graduationStatus.type === "success" ? (
+                <CheckCircle2 className="h-5 w-5 flex-shrink-0 mt-0.5" />
+              ) : (
+                <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+              )}
+              <p className="text-sm">{graduationStatus.message}</p>
+            </div>
+          )}
+
+          {/* Info */}
+          <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+            <p className="text-sm text-purple-800 font-semibold mb-2">
+              🎓 Cara Kerja:
+            </p>
+            <ul className="text-sm text-purple-700 space-y-1 ml-4 list-disc">
+              <li>Mahasiswa Angkatan 2024 → Otomatis "Lulus" di tahun 2026</li>
+              <li>Mahasiswa Angkatan 2025 → Otomatis "Lulus" di tahun 2027</li>
+              <li>Hanya mahasiswa dengan status "Aktif" yang akan diupdate</li>
+              <li>Update berjalan otomatis saat data mahasiswa diubah</li>
+            </ul>
+          </div>
+
+          {/* Action */}
+          <Button
+            onClick={handleAutoUpdateGraduation}
+            disabled={isUpdatingGraduation}
+            className="w-full"
+          >
+            {isUpdatingGraduation ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Memproses...
+              </>
+            ) : (
+              <>
+                <GraduationCap className="mr-2 h-4 w-4" />
+                Jalankan Update Status Sekarang
+              </>
+            )}
+          </Button>
         </CardContent>
       </Card>
 

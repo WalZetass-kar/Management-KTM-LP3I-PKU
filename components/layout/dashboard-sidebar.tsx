@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
 import { navigationItems } from "@/lib/navigation";
+import { usePermissions } from "@/hooks/use-permissions";
 import { cn } from "@/lib/utils";
 import { LogoLP3I } from "@/components/ui/logo-lp3i";
 
@@ -23,10 +24,37 @@ function isItemActive(pathname: string, href: string) {
 
 export function DashboardSidebar({ isOpen, onClose }: DashboardSidebarProps) {
   const pathname = usePathname();
+  const { hasPermission, role, isLoading } = usePermissions();
 
   useEffect(() => {
     onClose();
   }, [pathname]);
+
+  // Filter navigation items based on permissions
+  // While loading, show all items to prevent flickering
+  const visibleItems = isLoading || !role
+    ? navigationItems 
+    : navigationItems.filter((item) => {
+        // If no permission required, always show
+        if (!item.permission) return true;
+        // Check if user has permission
+        const hasAccess = hasPermission(item.permission);
+        console.log(`Menu "${item.label}" - Permission: ${item.permission} - Has Access: ${hasAccess}`);
+        return hasAccess;
+      });
+
+  // Debug log
+  useEffect(() => {
+    if (!isLoading && role) {
+      console.log("=== SIDEBAR DEBUG ===");
+      console.log("User role:", role);
+      console.log("Total menu items:", navigationItems.length);
+      console.log("Visible items:", visibleItems.length);
+      console.log("Hidden items:", navigationItems.length - visibleItems.length);
+      console.log("Visible menu:", visibleItems.map(i => i.label).join(", "));
+      console.log("===================");
+    }
+  }, [isLoading, role, visibleItems.length]);
 
   return (
     <>
@@ -65,7 +93,7 @@ export function DashboardSidebar({ isOpen, onClose }: DashboardSidebarProps) {
         </div>
 
         <nav className="flex-1 space-y-2 px-4 py-6 overflow-y-auto">
-          {navigationItems.map((item) => {
+          {visibleItems.map((item) => {
             const isActive = isItemActive(pathname, item.href);
             const Icon = item.icon;
 
@@ -93,6 +121,12 @@ export function DashboardSidebar({ isOpen, onClose }: DashboardSidebarProps) {
         <div className="border-t border-sidebar-border px-6 py-5">
           <p className="text-xs uppercase tracking-[0.2em] text-blue-200">Status Sistem</p>
           <p className="mt-2 text-sm text-blue-50">Seluruh modul berjalan normal dan siap digunakan.</p>
+          {!isLoading && role && (
+            <div className="mt-3 rounded-lg bg-white/10 px-3 py-2">
+              <p className="text-xs text-blue-200">Role: <span className="font-semibold text-white">{role}</span></p>
+              <p className="text-xs text-blue-200">Menu: <span className="font-semibold text-white">{visibleItems.length}/{navigationItems.length}</span></p>
+            </div>
+          )}
         </div>
       </aside>
     </>
