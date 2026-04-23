@@ -1,233 +1,323 @@
 "use client";
 
 import { useState } from "react";
-import { Database, Shield, Lock, Key, Server, HardDrive } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
+import { 
+  Database, 
+  Download, 
+  Upload, 
+  Activity, 
+  Server,
+  FileSpreadsheet,
+  AlertCircle,
+  CheckCircle2,
+  Loader2
+} from "lucide-react";
+import type { DashboardStat } from "@/types/dashboard";
 
-export function SettingsPanel() {
-  const [securitySaved, setSecuritySaved] = useState("");
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
-  const [sessionTimeout, setSessionTimeout] = useState(true);
-  const [autoBackup, setAutoBackup] = useState(true);
+interface SettingsPanelProps {
+  stats: DashboardStat[];
+  totalMahasiswa: number;
+  totalJurusan: number;
+  totalAngkatan: number;
+}
 
-  const handleChangePassword = () => {
-    setSecuritySaved("Kata sandi berhasil diperbarui.");
-    setTimeout(() => setSecuritySaved(""), 3000);
+export function SettingsPanel({ stats, totalMahasiswa, totalJurusan, totalAngkatan }: SettingsPanelProps) {
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importStatus, setImportStatus] = useState<{
+    type: "success" | "error" | null;
+    message: string;
+  }>({ type: null, message: "" });
+
+  const handleExportCSV = async () => {
+    setIsExporting(true);
+    try {
+      const response = await fetch("/api/export-mahasiswa");
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `mahasiswa-${new Date().toISOString().split("T")[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Error exporting:", error);
+      alert("Gagal export data");
+    } finally {
+      setIsExporting(false);
+    }
   };
 
-  const handleBackupNow = () => {
-    alert("Backup database sedang diproses...");
+  const handleImportExcel = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    setImportStatus({ type: null, message: "" });
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch("/api/import-mahasiswa", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Gagal import data");
+      }
+
+      setImportStatus({
+        type: "success",
+        message: `Berhasil import ${data.imported} mahasiswa!`,
+      });
+
+      // Refresh page after 2 seconds
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    } catch (error) {
+      setImportStatus({
+        type: "error",
+        message: error instanceof Error ? error.message : "Terjadi kesalahan",
+      });
+    } finally {
+      setIsImporting(false);
+      // Reset input
+      e.target.value = "";
+    }
   };
 
-  const handleExportData = () => {
-    alert("Export data mahasiswa sedang diproses...");
+  const handleDownloadTemplate = () => {
+    const template = `nama,nim,jurusan,angkatan,alamat,no_hp,status
+John Doe,2024010101,Teknik Informatika,2024,Jl. Contoh No. 1,08123456789,Aktif
+Jane Smith,2024010102,Sistem Informasi,2024,Jl. Contoh No. 2,08123456790,Aktif`;
+
+    const blob = new Blob([template], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "template-mahasiswa.csv";
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
   };
 
   return (
-    <section className="mx-auto max-w-5xl space-y-6">
-      {/* Security Settings */}
-      <Card className="bg-white">
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-red-100 text-red-600">
-              <Shield className="h-5 w-5" />
-            </div>
-            <div>
-              <CardTitle>Keamanan Akun</CardTitle>
-              <CardDescription>Kelola keamanan dan autentikasi akun admin</CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <label htmlFor="current-password" className="text-sm font-medium text-foreground">
-              Kata Sandi Saat Ini
-            </label>
-            <Input id="current-password" type="password" placeholder="Masukkan kata sandi saat ini" />
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="new-password" className="text-sm font-medium text-foreground">
-              Kata Sandi Baru
-            </label>
-            <Input id="new-password" type="password" placeholder="Minimal 8 karakter" />
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="confirm-password" className="text-sm font-medium text-foreground">
-              Konfirmasi Kata Sandi Baru
-            </label>
-            <Input id="confirm-password" type="password" placeholder="Ulangi kata sandi baru" />
-          </div>
-          <Button onClick={handleChangePassword} className="w-full sm:w-auto">
-            <Lock className="mr-2 h-4 w-4" />
-            Perbarui Kata Sandi
-          </Button>
-          {securitySaved && <p className="text-sm text-green-600">{securitySaved}</p>}
-        </CardContent>
-      </Card>
-
-      {/* Security Options */}
-      <Card className="bg-white">
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-100 text-orange-600">
-              <Key className="h-5 w-5" />
-            </div>
-            <div>
-              <CardTitle>Opsi Keamanan</CardTitle>
-              <CardDescription>Konfigurasi pengaturan keamanan tambahan</CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between gap-4 rounded-lg border bg-slate-50 px-4 py-4">
-            <div className="flex-1">
-              <p className="font-semibold text-foreground">Autentikasi Dua Faktor (2FA)</p>
-              <p className="text-sm text-muted-foreground">
-                Tambahkan lapisan keamanan ekstra dengan kode verifikasi
-              </p>
-            </div>
-            <Switch checked={twoFactorEnabled} onCheckedChange={setTwoFactorEnabled} />
-          </div>
-          <div className="flex items-center justify-between gap-4 rounded-lg border bg-slate-50 px-4 py-4">
-            <div className="flex-1">
-              <p className="font-semibold text-foreground">Session Timeout Otomatis</p>
-              <p className="text-sm text-muted-foreground">
-                Logout otomatis setelah 30 menit tidak aktif
-              </p>
-            </div>
-            <Switch checked={sessionTimeout} onCheckedChange={setSessionTimeout} />
-          </div>
-          <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3">
-            <p className="text-sm font-medium text-yellow-800">
-              ⚠️ Perubahan pengaturan keamanan akan diterapkan pada sesi login berikutnya
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* System Operations */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="bg-white">
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-100 text-blue-600">
-                <Database className="h-5 w-5" />
-              </div>
-              <div>
-                <CardTitle>Backup Database</CardTitle>
-                <CardDescription>Cadangkan data sistem secara berkala</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between gap-4 rounded-lg border bg-slate-50 px-4 py-4">
-              <div className="flex-1">
-                <p className="font-semibold text-foreground">Backup Otomatis</p>
-                <p className="text-sm text-muted-foreground">Backup harian pada pukul 02:00 WIB</p>
-              </div>
-              <Switch checked={autoBackup} onCheckedChange={setAutoBackup} />
-            </div>
-            <div className="space-y-3">
-              <div className="rounded-lg bg-slate-50 px-4 py-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-foreground">Backup Terakhir</span>
-                  <span className="text-sm text-muted-foreground">2 hari yang lalu</span>
-                </div>
-                <div className="mt-1 flex items-center justify-between">
-                  <span className="text-sm font-medium text-foreground">Ukuran Database</span>
-                  <span className="text-sm text-muted-foreground">45.2 MB</span>
-                </div>
-              </div>
-              <Button onClick={handleBackupNow} variant="outline" className="w-full">
-                <HardDrive className="mr-2 h-4 w-4" />
-                Backup Sekarang
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white">
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-green-100 text-green-600">
-                <Server className="h-5 w-5" />
-              </div>
-              <div>
-                <CardTitle>Operasional Sistem</CardTitle>
-                <CardDescription>Kelola data dan operasional sistem</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <div className="rounded-lg bg-slate-50 px-4 py-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-foreground">Total Mahasiswa</span>
-                  <span className="text-sm font-semibold text-foreground">1,234</span>
-                </div>
-                <div className="mt-1 flex items-center justify-between">
-                  <span className="text-sm font-medium text-foreground">KTM Digenerate</span>
-                  <span className="text-sm font-semibold text-foreground">987</span>
-                </div>
-                <div className="mt-1 flex items-center justify-between">
-                  <span className="text-sm font-medium text-foreground">Status Sistem</span>
-                  <span className="text-sm font-semibold text-green-600">● Online</span>
-                </div>
-              </div>
-              <Button onClick={handleExportData} variant="outline" className="w-full">
-                <Database className="mr-2 h-4 w-4" />
-                Ekspor Data Mahasiswa (CSV)
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-foreground">Pengaturan</h1>
+        <p className="text-muted-foreground mt-2">
+          Kelola preferensi admin, konfigurasi, dan sistem.
+        </p>
       </div>
 
-      {/* System Information */}
-      <Card className="bg-white">
+      {/* Operational Stats */}
+      <Card>
         <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-purple-100 text-purple-600">
-              <Server className="h-5 w-5" />
-            </div>
-            <div>
-              <CardTitle>Informasi Sistem</CardTitle>
-              <CardDescription>Detail teknis dan versi sistem</CardDescription>
-            </div>
+          <div className="flex items-center gap-2">
+            <Activity className="h-5 w-5 text-green-600" />
+            <CardTitle>Operasional Sistem</CardTitle>
           </div>
+          <CardDescription>Status data dan operasional sistem</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="rounded-lg border bg-slate-50 px-4 py-3">
-              <p className="text-xs text-muted-foreground">Versi Sistem</p>
-              <p className="mt-1 font-semibold text-foreground">v1.0.0</p>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">Total Mahasiswa</p>
+              <p className="text-3xl font-bold text-blue-600">{totalMahasiswa}</p>
+              <p className="text-xs text-muted-foreground">KTM Di-generate: {stats[0]?.value || "0"}</p>
             </div>
-            <div className="rounded-lg border bg-slate-50 px-4 py-3">
-              <p className="text-xs text-muted-foreground">Database</p>
-              <p className="mt-1 font-semibold text-foreground">PostgreSQL 15</p>
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">Total Jurusan</p>
+              <p className="text-3xl font-bold text-green-600">{totalJurusan}</p>
+              <p className="text-xs text-green-600">● Aktif</p>
             </div>
-            <div className="rounded-lg border bg-slate-50 px-4 py-3">
-              <p className="text-xs text-muted-foreground">Storage</p>
-              <p className="mt-1 font-semibold text-foreground">Supabase</p>
-            </div>
-            <div className="rounded-lg border bg-slate-50 px-4 py-3">
-              <p className="text-xs text-muted-foreground">Framework</p>
-              <p className="mt-1 font-semibold text-foreground">Next.js 15</p>
-            </div>
-            <div className="rounded-lg border bg-slate-50 px-4 py-3">
-              <p className="text-xs text-muted-foreground">Uptime</p>
-              <p className="mt-1 font-semibold text-foreground">99.9%</p>
-            </div>
-            <div className="rounded-lg border bg-slate-50 px-4 py-3">
-              <p className="text-xs text-muted-foreground">Last Update</p>
-              <p className="mt-1 font-semibold text-foreground">17 Apr 2026</p>
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">Total Angkatan</p>
+              <p className="text-3xl font-bold text-purple-600">{totalAngkatan}</p>
+              <p className="text-xs text-muted-foreground">Status Sistem: Online</p>
             </div>
           </div>
         </CardContent>
       </Card>
-    </section>
+
+      {/* Backup & Export */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Database className="h-5 w-5 text-blue-600" />
+            <CardTitle>Backup Database</CardTitle>
+          </div>
+          <CardDescription>
+            Cadangkan data secara berkala untuk keamanan
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <div>
+              <p className="font-semibold text-gray-900">Backup Terakhir</p>
+              <p className="text-sm text-gray-600">
+                {new Date().toLocaleDateString("id-ID", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </p>
+            </div>
+            <Button onClick={handleExportCSV} disabled={isExporting}>
+              {isExporting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Exporting...
+                </>
+              ) : (
+                <>
+                  <Download className="mr-2 h-4 w-4" />
+                  Export Data (CSV)
+                </>
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Import Excel */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Upload className="h-5 w-5 text-green-600" />
+            <CardTitle>Import Mahasiswa (Excel/CSV)</CardTitle>
+          </div>
+          <CardDescription>
+            Upload file Excel atau CSV untuk menambahkan mahasiswa secara massal
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Status Message */}
+          {importStatus.type && (
+            <div
+              className={`p-4 rounded-lg border flex items-start gap-3 ${
+                importStatus.type === "success"
+                  ? "bg-green-50 border-green-200 text-green-800"
+                  : "bg-red-50 border-red-200 text-red-800"
+              }`}
+            >
+              {importStatus.type === "success" ? (
+                <CheckCircle2 className="h-5 w-5 flex-shrink-0 mt-0.5" />
+              ) : (
+                <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+              )}
+              <p className="text-sm">{importStatus.message}</p>
+            </div>
+          )}
+
+          {/* Instructions */}
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800 font-semibold mb-2">
+              📋 Format File:
+            </p>
+            <ul className="text-sm text-yellow-700 space-y-1 ml-4 list-disc">
+              <li>File harus berformat .xlsx, .xls, atau .csv</li>
+              <li>Kolom wajib: nama, nim, jurusan, angkatan, alamat, no_hp, status</li>
+              <li>Jurusan dan angkatan harus sudah terdaftar di sistem</li>
+              <li>Status: Aktif, Menunggu, Tidak Aktif, Lulus, atau Cuti</li>
+            </ul>
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button
+              variant="outline"
+              onClick={handleDownloadTemplate}
+              className="flex-1"
+            >
+              <FileSpreadsheet className="mr-2 h-4 w-4" />
+              Download Template
+            </Button>
+
+            <label className="flex-1">
+              <Button
+                className="w-full"
+                disabled={isImporting}
+                asChild
+              >
+                <span>
+                  {isImporting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Importing...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="mr-2 h-4 w-4" />
+                      Upload File Excel/CSV
+                    </>
+                  )}
+                </span>
+              </Button>
+              <input
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                onChange={handleImportExcel}
+                disabled={isImporting}
+                className="hidden"
+              />
+            </label>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* System Info */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Server className="h-5 w-5 text-gray-600" />
+            <CardTitle>Informasi Sistem</CardTitle>
+          </div>
+          <CardDescription>Detail teknis dan versi sistem</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div>
+              <p className="text-sm text-muted-foreground">Versi</p>
+              <p className="text-lg font-semibold">v1.0.0</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Database</p>
+              <p className="text-lg font-semibold">PostgreSQL 15</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Framework</p>
+              <p className="text-lg font-semibold">Next.js 15</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Uptime</p>
+              <p className="text-lg font-semibold">99.9%</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Last Update</p>
+              <p className="text-lg font-semibold">
+                {new Date().toLocaleDateString("id-ID")}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Storage</p>
+              <p className="text-lg font-semibold">Supabase</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

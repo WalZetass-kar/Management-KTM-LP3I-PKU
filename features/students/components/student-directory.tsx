@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { Edit, Filter, Plus, Search, Trash2 } from "lucide-react";
+import { useState, useTransition, useRef } from "react";
+import { Edit, Filter, Plus, Search, Trash2, Upload, Loader2, CheckCircle2, AlertCircle, FileSpreadsheet, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { deleteMahasiswaAction } from "@/actions/mahasiswa";
 import { Button } from "@/components/ui/button";
@@ -54,6 +54,15 @@ export function StudentDirectory({
     errorMessage ? "error" : "success",
   );
   const [isPending, startTransition] = useTransition();
+  
+  // Import modal state
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importStatus, setImportStatus] = useState<{
+    type: "success" | "error" | null;
+    message: string;
+  }>({ type: null, message: "" });
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Handle filter changes with URL updates
   const handleFilterChange = (key: string, value: string) => {
@@ -86,6 +95,69 @@ export function StudentDirectory({
   const safePage = Math.min(currentPage, totalPages);
   const startIndex = (safePage - 1) * itemsPerPage;
   const visibleStudents = filteredStudents.slice(startIndex, startIndex + itemsPerPage);
+
+  // Import handlers
+  const handleImportExcel = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    setImportStatus({ type: null, message: "" });
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch("/api/import-mahasiswa", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Gagal import data");
+      }
+
+      setImportStatus({
+        type: "success",
+        message: `Berhasil import ${data.imported} mahasiswa!`,
+      });
+
+      // Refresh page after 2 seconds
+      setTimeout(() => {
+        setShowImportModal(false);
+        router.refresh();
+      }, 2000);
+    } catch (error) {
+      setImportStatus({
+        type: "error",
+        message: error instanceof Error ? error.message : "Terjadi kesalahan",
+      });
+    } finally {
+      setIsImporting(false);
+      // Reset input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const handleDownloadTemplate = () => {
+    const template = `nama,nim,jurusan,angkatan,alamat,no_hp,status
+John Doe,2024010101,Teknik Informatika,2024,Jl. Contoh No. 1,08123456789,Aktif
+Jane Smith,2024010102,Sistem Informasi,2024,Jl. Contoh No. 2,08123456790,Aktif`;
+
+    const blob = new Blob([template], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "template-mahasiswa.csv";
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  };
 
   return (
     <section className="space-y-6">
@@ -173,19 +245,126 @@ export function StudentDirectory({
                 ]}
               />
             </div>
-
-            <Button onClick={handleSearch} variant="outline" className="w-full sm:w-auto">
-              <Search className="h-4 w-4 mr-2" />
-              Cari
-            </Button>
           </div>
 
-          <Button href="/mahasiswa/tambah" className="w-full xl:w-auto">
-            <Plus className="h-4 w-4" />
-            Tambah Mahasiswa
-          </Button>
+          <div className="flex gap-2 w-full xl:w-auto">
+            <Button 
+              onClick={() => setShowImportModal(true)} 
+              variant="outline" 
+              className="flex-1 xl:flex-initial"
+            >
+              <Upload className="h-4 w-4" />
+              Import Excel
+            </Button>
+            <Button href="/mahasiswa/tambah" className="flex-1 xl:flex-initial">
+              <Plus className="h-4 w-4" />
+              Tambah Mahasiswa
+            </Button>
+          </div>
         </CardContent>
       </Card>
+
+      {/* Import Modal */}
+      {showImportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Upload className="h-5 w-5 text-green-600" />
+                  <h2 className="text-xl font-bold">Import Mahasiswa (Excel/CSV)</h2>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowImportModal(false);
+                    setImportStatus({ type: null, message: "" });
+                  }}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <p className="text-sm text-muted-foreground mb-4">
+                Upload file Excel atau CSV untuk menambahkan mahasiswa secara massal
+              </p>
+
+              {/* Status Message */}
+              {importStatus.type && (
+                <div
+                  className={`p-4 rounded-lg border flex items-start gap-3 mb-4 ${
+                    importStatus.type === "success"
+                      ? "bg-green-50 border-green-200 text-green-800"
+                      : "bg-red-50 border-red-200 text-red-800"
+                  }`}
+                >
+                  {importStatus.type === "success" ? (
+                    <CheckCircle2 className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                  ) : (
+                    <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                  )}
+                  <p className="text-sm">{importStatus.message}</p>
+                </div>
+              )}
+
+              {/* Instructions */}
+              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-4">
+                <p className="text-sm text-yellow-800 font-semibold mb-2">
+                  📋 Format File:
+                </p>
+                <ul className="text-sm text-yellow-700 space-y-1 ml-4 list-disc">
+                  <li>File harus berformat .xlsx, .xls, atau .csv</li>
+                  <li>Kolom wajib: nama, nim, jurusan, angkatan, alamat, no_hp, status</li>
+                  <li>Jurusan dan angkatan harus sudah terdaftar di sistem</li>
+                  <li>Status: Aktif, Menunggu, Tidak Aktif, Lulus, atau Cuti</li>
+                </ul>
+              </div>
+
+              {/* Actions */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button
+                  variant="outline"
+                  onClick={handleDownloadTemplate}
+                  className="flex-1"
+                >
+                  <FileSpreadsheet className="mr-2 h-4 w-4" />
+                  Download Template
+                </Button>
+
+                <label className="flex-1">
+                  <Button
+                    className="w-full"
+                    disabled={isImporting}
+                    asChild
+                  >
+                    <span>
+                      {isImporting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Importing...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="mr-2 h-4 w-4" />
+                          Upload File
+                        </>
+                      )}
+                    </span>
+                  </Button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".xlsx,.xls,.csv"
+                    onChange={handleImportExcel}
+                    disabled={isImporting}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <Card className="overflow-hidden bg-white">
         <div className="overflow-x-auto">
