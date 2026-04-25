@@ -52,7 +52,7 @@ export async function getDashboardStats() {
         title: "Menunggu Verifikasi",
         value: String(pendingCount ?? 0),
         change: "0%",
-        trend: "neutral",
+        trend: "decrease",
         icon: "pending",
       },
       {
@@ -87,7 +87,7 @@ export async function getDashboardStats() {
           title: "Menunggu Verifikasi",
           value: "0",
           change: "0%",
-          trend: "neutral" as const,
+          trend: "decrease" as const,
           icon: "pending" as const,
         },
         {

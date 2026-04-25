@@ -11,6 +11,11 @@ export interface StudentRecord {
   phoneNumber: string;
   angkatan?: string;
   createdAt: string;
+  // Alumni fields
+  tahunLulus?: string | null;
+  pekerjaanSaatIni?: string | null;
+  perusahaanSaatIni?: string | null;
+  lokasiSaatIni?: string | null;
 }
 
 export interface VerificationRecord extends StudentRecord {
@@ -26,4 +31,9 @@ export interface StudentFormValues {
   phoneNumber: string;
   status: StudentStatus;
   angkatan: string;
+  // Alumni fields (optional)
+  tahunLulus?: string;
+  pekerjaanSaatIni?: string;
+  perusahaanSaatIni?: string;
+  lokasiSaatIni?: string;
 }

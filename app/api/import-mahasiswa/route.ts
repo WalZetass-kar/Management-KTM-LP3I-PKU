@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
         angkatan: row.angkatan,
         alamat: row.alamat,
         no_hp: row.no_hp,
-        status: row.status,
+        status: row.status as "Aktif" | "Menunggu" | "Tidak Aktif" | "Lulus" | "Cuti",
         foto_url: null,
       };
     });

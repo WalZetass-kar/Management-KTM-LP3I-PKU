@@ -3,9 +3,9 @@ export interface Angkatan {
   tahun: string;
   nama_angkatan: string;
   status: 'Aktif' | 'Tidak Aktif';
-  keterangan?: string;
+  keterangan?: string | null;
   created_at: string;
-  updated_at: string;
+  updated_at?: string | null;
 }
 
 export interface CreateAngkatanData {

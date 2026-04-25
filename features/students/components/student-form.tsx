@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState, type ChangeEvent, type FormEvent } from "react";
-import { ArrowLeft, Upload, X } from "lucide-react";
+import { ArrowLeft, Upload, X, GraduationCap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createMahasiswaAction, updateMahasiswaAction } from "@/actions/mahasiswa";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,10 @@ const initialValues: StudentFormValues = {
   phoneNumber: "",
   status: "Menunggu",
   angkatan: "2025",
+  tahunLulus: "",
+  pekerjaanSaatIni: "",
+  perusahaanSaatIni: "",
+  lokasiSaatIni: "",
 };
 
 interface StudentFormProps {
@@ -44,6 +48,10 @@ export function StudentForm({ mode, student, jurusanList, angkatanList }: Studen
           phoneNumber: student.phoneNumber,
           status: student.status,
           angkatan: student.angkatan || "2025",
+          tahunLulus: student.tahunLulus || "",
+          pekerjaanSaatIni: student.pekerjaanSaatIni || "",
+          perusahaanSaatIni: student.perusahaanSaatIni || "",
+          lokasiSaatIni: student.lokasiSaatIni || "",
         }
       : initialValues,
   );
@@ -295,6 +303,74 @@ export function StudentForm({ mode, student, jurusanList, angkatanList }: Studen
                   ]}
                 />
               </div>
+
+              {/* Alumni Fields - Only show when status is "Lulus" */}
+              {formValues.status === "Lulus" && (
+                <>
+                  <div className="md:col-span-3">
+                    <div className="rounded-lg border-2 border-amber-200 bg-amber-50 p-4">
+                      <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-amber-900">
+                        <GraduationCap className="h-4 w-4" />
+                        Data Alumni
+                      </h3>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <label htmlFor="tahunLulus" className="text-sm font-medium text-foreground">
+                            Tahun Lulus
+                          </label>
+                          <Input
+                            id="tahunLulus"
+                            name="tahunLulus"
+                            value={formValues.tahunLulus || ""}
+                            onChange={(event) => setFieldValue("tahunLulus", event.target.value)}
+                            placeholder="Contoh: 2023"
+                            maxLength={4}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <label htmlFor="lokasiSaatIni" className="text-sm font-medium text-foreground">
+                            Lokasi Saat Ini
+                          </label>
+                          <Input
+                            id="lokasiSaatIni"
+                            name="lokasiSaatIni"
+                            value={formValues.lokasiSaatIni || ""}
+                            onChange={(event) => setFieldValue("lokasiSaatIni", event.target.value)}
+                            placeholder="Contoh: Pekanbaru, Riau"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <label htmlFor="pekerjaanSaatIni" className="text-sm font-medium text-foreground">
+                            Pekerjaan Saat Ini
+                          </label>
+                          <Input
+                            id="pekerjaanSaatIni"
+                            name="pekerjaanSaatIni"
+                            value={formValues.pekerjaanSaatIni || ""}
+                            onChange={(event) => setFieldValue("pekerjaanSaatIni", event.target.value)}
+                            placeholder="Contoh: Software Engineer"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <label htmlFor="perusahaanSaatIni" className="text-sm font-medium text-foreground">
+                            Perusahaan Saat Ini
+                          </label>
+                          <Input
+                            id="perusahaanSaatIni"
+                            name="perusahaanSaatIni"
+                            value={formValues.perusahaanSaatIni || ""}
+                            onChange={(event) => setFieldValue("perusahaanSaatIni", event.target.value)}
+                            placeholder="Contoh: PT Teknologi Indonesia"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
             {state.status === "error" ? (

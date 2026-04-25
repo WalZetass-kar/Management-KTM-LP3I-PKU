@@ -4,6 +4,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getErrorMessage } from "@/lib/utils";
 import type { Database } from "@/types/supabase";
 import type { StudentFormValues, StudentRecord } from "@/types/student";
+import type { StudentStatus } from "@/types/student";
 
 const FOTO_BUCKET = "foto-mahasiswa";
 const MAX_UPLOAD_BYTES = 2 * 1024 * 1024;
@@ -18,7 +19,7 @@ export function mapMahasiswaRowToStudentRecord(row: MahasiswaRow): StudentRecord
     id: row.id,
     fullName: row.nama,
     nim: row.nim,
-    studyProgram: row.jurusan,
+    studyProgram: row.jurusan ?? "",
     address: row.alamat,
     phoneNumber: row.no_hp,
     photoUrl: row.foto_url,
@@ -37,6 +38,10 @@ export function mapStudentToFormValues(student: StudentRecord): StudentFormValue
     phoneNumber: student.phoneNumber,
     status: student.status,
     angkatan: student.angkatan || "2025",
+    tahunLulus: student.tahunLulus || "",
+    pekerjaanSaatIni: student.pekerjaanSaatIni || "",
+    perusahaanSaatIni: student.perusahaanSaatIni || "",
+    lokasiSaatIni: student.lokasiSaatIni || "",
   };
 }
 
@@ -46,7 +51,7 @@ function readString(formData: FormData, key: string) {
 }
 
 export function normalizeStudentFormValues(formData: FormData): StudentFormValues {
-  const status = readString(formData, "status");
+  const status = readString(formData, "status") as StudentStatus;
 
   return {
     fullName: readString(formData, "fullName"),
@@ -54,8 +59,12 @@ export function normalizeStudentFormValues(formData: FormData): StudentFormValue
     studyProgram: readString(formData, "studyProgram"),
     address: readString(formData, "address"),
     phoneNumber: readString(formData, "phoneNumber"),
-    status: status === "Aktif" ? "Aktif" : "Menunggu",
+    status: status || "Menunggu",
     angkatan: readString(formData, "angkatan") || "2025",
+    tahunLulus: readString(formData, "tahunLulus") || "",
+    pekerjaanSaatIni: readString(formData, "pekerjaanSaatIni") || "",
+    perusahaanSaatIni: readString(formData, "perusahaanSaatIni") || "",
+    lokasiSaatIni: readString(formData, "lokasiSaatIni") || "",
   };
 }
 
@@ -195,7 +204,10 @@ export function buildMahasiswaInsert(values: StudentFormValues, photoUrl: string
     foto_url: photoUrl,
     status: values.status,
     angkatan: values.angkatan,
-    // Foreign keys will be auto-synced by trigger
+    tahun_lulus: values.tahunLulus || null,
+    pekerjaan_saat_ini: values.pekerjaanSaatIni || null,
+    perusahaan_saat_ini: values.perusahaanSaatIni || null,
+    lokasi_saat_ini: values.lokasiSaatIni || null,
   };
 }
 
@@ -209,7 +221,10 @@ export function buildMahasiswaUpdate(values: StudentFormValues, photoUrl: string
     foto_url: photoUrl,
     status: values.status,
     angkatan: values.angkatan,
-    // Foreign keys will be auto-synced by trigger
+    tahun_lulus: values.tahunLulus || null,
+    pekerjaan_saat_ini: values.pekerjaanSaatIni || null,
+    perusahaan_saat_ini: values.perusahaanSaatIni || null,
+    lokasi_saat_ini: values.lokasiSaatIni || null,
   };
 }
 
@@ -247,7 +262,7 @@ export async function getMahasiswaByStatus(status: string) {
     const { data, error } = await supabase
       .from("mahasiswa")
       .select("*")
-      .eq("status", status)
+      .eq("status", status as "Aktif" | "Menunggu" | "Tidak Aktif" | "Lulus" | "Cuti")
       .order("created_at", { ascending: false });
 
     if (error) {

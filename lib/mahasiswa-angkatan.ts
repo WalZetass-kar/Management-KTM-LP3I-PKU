@@ -5,10 +5,10 @@ export interface MahasiswaAngkatan {
   id: number;
   fullName: string;
   nim: string;
-  angkatan: string;
-  studyProgram: string;
+  angkatan: string | null;
+  studyProgram: string | null;
   status: string;
-  photoUrl?: string;
+  photoUrl?: string | null;
   address: string;
   phoneNumber: string;
   createdAt: string;
@@ -83,8 +83,8 @@ export async function getAvailableAngkatan(): Promise<{ data: string[]; error: s
       return { data: [], error: error.message };
     }
 
-    // Get unique angkatan values
-    const uniqueAngkatan = [...new Set((data || []).map(item => item.angkatan))];
+    // Get unique angkatan values (filter out nulls)
+    const uniqueAngkatan = [...new Set((data || []).map(item => item.angkatan))].filter((a): a is string => a !== null);
 
     return { data: uniqueAngkatan, error: null };
   } catch (error) {
@@ -178,8 +178,8 @@ export async function createMahasiswaAngkatan(mahasiswaData: CreateMahasiswaAngk
       nim: mahasiswaData.nim,
       angkatan: mahasiswaData.angkatan,
       jurusan: mahasiswaData.studyProgram,
-      status: mahasiswaData.status,
-      foto_url: mahasiswaData.photoUrl,
+      status: mahasiswaData.status as "Aktif" | "Menunggu" | "Tidak Aktif" | "Lulus" | "Cuti",
+      foto_url: mahasiswaData.photoUrl ?? null,
       alamat: mahasiswaData.address,
       no_hp: mahasiswaData.phoneNumber,
     };
@@ -227,8 +227,8 @@ export async function updateMahasiswaAngkatan(mahasiswaData: UpdateMahasiswaAngk
       nim: mahasiswaData.nim,
       angkatan: mahasiswaData.angkatan,
       jurusan: mahasiswaData.studyProgram,
-      status: mahasiswaData.status,
-      foto_url: mahasiswaData.photoUrl,
+      status: mahasiswaData.status as "Aktif" | "Menunggu" | "Tidak Aktif" | "Lulus" | "Cuti",
+      foto_url: mahasiswaData.photoUrl ?? null,
       alamat: mahasiswaData.address,
       no_hp: mahasiswaData.phoneNumber,
       updated_at: new Date().toISOString(),

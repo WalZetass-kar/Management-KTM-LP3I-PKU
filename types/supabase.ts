@@ -63,6 +63,10 @@ export interface Database {
           no_hp: string;
           foto_url: string | null;
           status: "Aktif" | "Menunggu" | "Tidak Aktif" | "Lulus" | "Cuti";
+          tahun_lulus: string | null;
+          pekerjaan_saat_ini: string | null;
+          perusahaan_saat_ini: string | null;
+          lokasi_saat_ini: string | null;
           created_at: string;
           updated_at: string | null;
         };
@@ -78,6 +82,10 @@ export interface Database {
           no_hp: string;
           foto_url?: string | null;
           status?: "Aktif" | "Menunggu" | "Tidak Aktif" | "Lulus" | "Cuti";
+          tahun_lulus?: string | null;
+          pekerjaan_saat_ini?: string | null;
+          perusahaan_saat_ini?: string | null;
+          lokasi_saat_ini?: string | null;
           created_at?: string;
           updated_at?: string | null;
         };
@@ -92,6 +100,10 @@ export interface Database {
           no_hp?: string;
           foto_url?: string | null;
           status?: "Aktif" | "Menunggu" | "Tidak Aktif" | "Lulus" | "Cuti";
+          tahun_lulus?: string | null;
+          pekerjaan_saat_ini?: string | null;
+          perusahaan_saat_ini?: string | null;
+          lokasi_saat_ini?: string | null;
           created_at?: string;
           updated_at?: string | null;
         };

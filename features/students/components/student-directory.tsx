@@ -335,21 +335,18 @@ Jane Smith,2024010102,Sistem Informasi,2024,Jl. Contoh No. 2,08123456790,Aktif`;
                   <Button
                     className="w-full"
                     disabled={isImporting}
-                    asChild
                   >
-                    <span>
-                      {isImporting ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Importing...
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="mr-2 h-4 w-4" />
-                          Upload File
-                        </>
-                      )}
-                    </span>
+                    {isImporting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Importing...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="mr-2 h-4 w-4" />
+                        Upload File
+                      </>
+                    )}
                   </Button>
                   <input
                     ref={fileInputRef}

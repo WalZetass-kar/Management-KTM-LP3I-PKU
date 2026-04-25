@@ -5,16 +5,16 @@ export function StudentStatusBadge({ status }: { status: StudentStatus }) {
   const getVariant = () => {
     switch (status) {
       case "Aktif":
-        return "success";
+        return "success" as const;
       case "Lulus":
-        return "default";
+        return "info" as const;
       case "Cuti":
-        return "warning";
+        return "warning" as const;
       case "Tidak Aktif":
-        return "destructive";
+        return "neutral" as const;
       case "Menunggu":
       default:
-        return "warning";
+        return "warning" as const;
     }
   };
 

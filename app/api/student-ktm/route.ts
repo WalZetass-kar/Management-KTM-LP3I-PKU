@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createServiceRoleSupabaseClient } from "@/lib/supabase/admin";
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,8 +13,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const supabase = await createServerSupabaseClient();
-    
+    // Use service role client to bypass RLS for public API
+    const supabase = createServiceRoleSupabaseClient();
+
     const { data, error } = await supabase
       .from("mahasiswa")
       .select("*")
@@ -36,7 +37,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Map to StudentRecord format
     const student = {
       id: data.id,
       fullName: data.nama,

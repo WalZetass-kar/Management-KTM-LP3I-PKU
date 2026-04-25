@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Download, CheckCircle, Loader2 } from "lucide-react";
+import { Search, Download, CheckCircle, Loader2, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -71,19 +72,29 @@ export function HeroSection() {
   };
 
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-50 px-4 py-20">
+    <section className="relative min-h-screen flex flex-col bg-gradient-to-br from-blue-50 via-white to-blue-50 px-4 py-20">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] -z-10" />
       
-      <div className="max-w-6xl mx-auto w-full">
-        <div className="text-center space-y-8">
+      {/* Back Button */}
+      <div className="max-w-6xl mx-auto w-full mb-8">
+        <Link href="/">
+          <Button variant="outline" className="gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Kembali ke Beranda
+          </Button>
+        </Link>
+      </div>
+
+      <div className="max-w-6xl mx-auto w-full flex-1 flex items-center">
+        <div className="w-full space-y-8">
           {/* Logo */}
-          <div className="flex justify-center mb-8">
+          <div className="flex justify-center">
             <LogoLP3I size="xl" className="h-20 w-auto" />
           </div>
 
           {/* Heading */}
-          <div className="space-y-4">
+          <div className="text-center space-y-4">
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 tracking-tight">
               Sistem KTM Digital Politeknik LP3I Pekanbaru
             </h1>

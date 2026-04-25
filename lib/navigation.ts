@@ -7,6 +7,7 @@ import {
   Shield,
   ShieldCheck,
   Users,
+  UserCheck,
 } from "lucide-react";
 import type { Permission } from "@/hooks/use-permissions";
 
@@ -46,6 +47,13 @@ export const navigationItems: NavigationItem[] = [
     description: "Kelola data jurusan dan program studi.",
     icon: BookOpen,
     permission: "manage_jurusan",
+  },
+  {
+    label: "Alumni",
+    href: "/alumni",
+    description: "Data dan statistik alumni LP3I Pekanbaru.",
+    icon: UserCheck,
+    permission: "view_dashboard",
   },
   {
     label: "Generate KTM",
