@@ -14,6 +14,7 @@ export function HeroSection() {
   const [nim, setNim] = useState("");
   const [student, setStudent] = useState<StudentRecord | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -42,40 +43,91 @@ export function HeroSection() {
 
   const handleDownload = async () => {
     if (!student) return;
-    
-    const ktmElement = document.getElementById("ktm-card");
-    if (!ktmElement) return;
+    setIsDownloading(true);
 
     try {
-      // Use dom-to-image-more for better compatibility
-      const domtoimage = await import("dom-to-image-more");
-      
-      const dataUrl = await domtoimage.toPng(ktmElement, {
-        quality: 1,
-        bgcolor: "#ffffff",
-        width: ktmElement.offsetWidth * 2,
-        height: ktmElement.offsetHeight * 2,
-        style: {
-          transform: "scale(2)",
-          transformOrigin: "top left",
-        },
+      const html2canvas = (await import("html2canvas")).default;
+      const jsPDF = (await import("jspdf")).default;
+
+      const frontEl = document.querySelector('[data-ktm-hero="front"]') as HTMLElement;
+      const backEl = document.querySelector('[data-ktm-hero="back"]') as HTMLElement;
+
+      const pdf = new jsPDF({
+        orientation: "landscape",
+        unit: "mm",
+        format: "a4",
       });
 
-      const link = document.createElement("a");
-      link.download = `KTM-${student.nim}.png`;
-      link.href = dataUrl;
-      link.click();
+      if (frontEl) {
+        const canvas = await html2canvas(frontEl, {
+          scale: 4,
+          useCORS: true,
+          logging: false,
+          backgroundColor: "#ffffff",
+        });
+        const imgWidth = 170;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        pdf.addImage(
+          canvas.toDataURL("image/png"),
+          "PNG",
+          (297 - imgWidth) / 2,
+          (210 - imgHeight) / 2,
+          imgWidth,
+          imgHeight
+        );
+      }
+
+      pdf.addPage();
+
+      if (backEl) {
+        const canvas = await html2canvas(backEl, {
+          scale: 4,
+          useCORS: true,
+          logging: false,
+          backgroundColor: "#ffffff",
+        });
+        const imgWidth = 170;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        pdf.addImage(
+          canvas.toDataURL("image/png"),
+          "PNG",
+          (297 - imgWidth) / 2,
+          (210 - imgHeight) / 2,
+          imgWidth,
+          imgHeight
+        );
+      }
+
+      pdf.save(`KTM-${student.nim}-${student.fullName}.pdf`);
     } catch (error) {
-      console.error("Error generating image:", error);
-      alert("Gagal mengunduh KTM. Silakan coba screenshot manual atau hubungi admin.");
+      console.error("Error generating PDF:", error);
+      alert("Gagal mengunduh KTM. Silakan coba lagi.");
+    } finally {
+      setIsDownloading(false);
     }
   };
+
+  const qrUrl = student
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(student.nim)}`
+    : undefined;
+
+  const studentKTMData = student
+    ? {
+        nama: student.fullName,
+        nim: student.nim,
+        jurusan: student.studyProgram,
+        masaBerlaku: `${new Date(student.createdAt || Date.now()).getFullYear()} - ${
+          new Date(student.createdAt || Date.now()).getFullYear() + 4
+        }`,
+        fotoUrl: student.photoUrl,
+      }
+    : null;
 
   return (
     <section className="relative min-h-screen flex flex-col bg-gradient-to-br from-blue-50 via-white to-blue-50 px-4 py-20">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] -z-10" />
-      
+
       {/* Back Button */}
       <div className="max-w-6xl mx-auto w-full mb-8">
         <Link href="/">
@@ -125,8 +177,8 @@ export function HeroSection() {
                     className="text-center text-lg h-14 border-2"
                     disabled={isLoading}
                   />
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     className="w-full h-14 text-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
                     disabled={!nim.trim() || isLoading}
                   >
@@ -155,42 +207,67 @@ export function HeroSection() {
           </div>
 
           {/* KTM Preview & Download */}
-          {student && (
+          {student && studentKTMData && (
             <div className="max-w-2xl mx-auto mt-8 space-y-6">
-              <Card className="p-8 bg-white border-2 border-green-200">
+              <Card className="p-8 bg-white border-2 border-blue-200">
                 <div className="space-y-6">
-                  <div className="flex items-center justify-center gap-2 text-green-600">
+                  <div className="flex items-center justify-center gap-2 text-blue-600">
                     <CheckCircle className="h-6 w-6" />
                     <span className="font-semibold text-lg">KTM Berhasil Dibuat!</span>
                   </div>
-                  
-                  {/* KTM Card */}
-                  <div id="ktm-card" className="flex justify-center">
-                    <KTMCardModern 
-                      student={{
-                        nama: student.fullName,
-                        nim: student.nim,
-                        jurusan: student.studyProgram,
-                        masaBerlaku: `${new Date().getFullYear() + 4}`,
-                        fotoUrl: student.photoUrl,
-                      }} 
-                    />
-                  </div>
+
+                  {/* KTM Card — dengan flip & QR code */}
+                  <KTMCardModern
+                    student={studentKTMData}
+                    qrUrl={qrUrl}
+                    mode="flip"
+                    showFlipHint
+                  />
 
                   {/* Download Button */}
                   <Button
                     onClick={handleDownload}
-                    className="w-full h-14 text-lg bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+                    disabled={isDownloading}
+                    className="w-full h-14 text-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
                   >
-                    <Download className="mr-2 h-5 w-5" />
-                    Unduh KTM
+                    {isDownloading ? (
+                      <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        Mengunduh PDF...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="mr-2 h-5 w-5" />
+                        Unduh KTM (PDF)
+                      </>
+                    )}
                   </Button>
 
                   <p className="text-sm text-gray-500 text-center">
-                    KTM akan diunduh dalam format PNG
+                    💡 KTM akan diunduh dalam format PDF (2 halaman: depan + belakang)
                   </p>
                 </div>
               </Card>
+
+              {/* Hidden render targets untuk download resolusi tinggi */}
+              <div className="pointer-events-none fixed left-[-9999px] top-0">
+                <div data-ktm-hero="front" className="w-[900px]">
+                  <KTMCardModern
+                    student={studentKTMData}
+                    qrUrl={qrUrl}
+                    mode="front-only"
+                    showFlipHint={false}
+                  />
+                </div>
+                <div data-ktm-hero="back" className="w-[900px]">
+                  <KTMCardModern
+                    student={studentKTMData}
+                    qrUrl={qrUrl}
+                    mode="back-only"
+                    showFlipHint={false}
+                  />
+                </div>
+              </div>
             </div>
           )}
         </div>

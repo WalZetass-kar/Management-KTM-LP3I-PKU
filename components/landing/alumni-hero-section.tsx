@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { LogoLP3I } from "@/components/ui/logo-lp3i";
+import { AlumniKTMCard } from "@/components/ui/alumni-ktm-card";
 
 interface AlumniData {
   nim: string;
@@ -20,6 +21,7 @@ export function AlumniHeroSection() {
   const [nim, setNim] = useState("");
   const [alumni, setAlumni] = useState<AlumniData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -48,39 +50,89 @@ export function AlumniHeroSection() {
 
   const handleDownload = async () => {
     if (!alumni) return;
-    
-    const cardElement = document.getElementById("alumni-card");
-    if (!cardElement) return;
+    setIsDownloading(true);
 
     try {
-      const domtoimage = await import("dom-to-image-more");
-      
-      const dataUrl = await domtoimage.toPng(cardElement, {
-        quality: 1,
-        bgcolor: "#ffffff",
-        width: cardElement.offsetWidth * 2,
-        height: cardElement.offsetHeight * 2,
-        style: {
-          transform: "scale(2)",
-          transformOrigin: "top left",
-        },
+      const html2canvas = (await import("html2canvas")).default;
+      const jsPDF = (await import("jspdf")).default;
+
+      const frontEl = document.querySelector('[data-alumni-hero="front"]') as HTMLElement;
+      const backEl = document.querySelector('[data-alumni-hero="back"]') as HTMLElement;
+
+      const pdf = new jsPDF({
+        orientation: "landscape",
+        unit: "mm",
+        format: "a4",
       });
 
-      const link = document.createElement("a");
-      link.download = `Kartu-Alumni-${alumni.nim}.png`;
-      link.href = dataUrl;
-      link.click();
+      if (frontEl) {
+        const canvas = await html2canvas(frontEl, {
+          scale: 4,
+          useCORS: true,
+          logging: false,
+          backgroundColor: "#ffffff",
+        });
+        const imgWidth = 170;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        pdf.addImage(
+          canvas.toDataURL("image/png"),
+          "PNG",
+          (297 - imgWidth) / 2,
+          (210 - imgHeight) / 2,
+          imgWidth,
+          imgHeight
+        );
+      }
+
+      pdf.addPage();
+
+      if (backEl) {
+        const canvas = await html2canvas(backEl, {
+          scale: 4,
+          useCORS: true,
+          logging: false,
+          backgroundColor: "#ffffff",
+        });
+        const imgWidth = 170;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        pdf.addImage(
+          canvas.toDataURL("image/png"),
+          "PNG",
+          (297 - imgWidth) / 2,
+          (210 - imgHeight) / 2,
+          imgWidth,
+          imgHeight
+        );
+      }
+
+      pdf.save(`KTM-Alumni-${alumni.nim}-${alumni.fullName}.pdf`);
     } catch (error) {
-      console.error("Error generating image:", error);
-      alert("Gagal mengunduh kartu. Silakan coba screenshot manual atau hubungi admin.");
+      console.error("Error generating PDF:", error);
+      alert("Gagal mengunduh kartu. Silakan coba lagi.");
+    } finally {
+      setIsDownloading(false);
     }
   };
 
+  const qrUrl = alumni
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(alumni.nim)}`
+    : undefined;
+
+  const alumniKTMData = alumni
+    ? {
+        nama: alumni.fullName,
+        nim: alumni.nim,
+        jurusan: alumni.studyProgram,
+        tahunLulus: alumni.graduationYear,
+        fotoUrl: alumni.photoUrl ?? null,
+      }
+    : null;
+
   return (
-    <section className="relative min-h-screen flex flex-col bg-gradient-to-br from-green-50 via-white to-green-50 px-4 py-20">
+    <section className="relative min-h-screen flex flex-col bg-gradient-to-br from-blue-50 via-white to-blue-50 px-4 py-20">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] -z-10" />
-      
+
       {/* Back Button */}
       <div className="max-w-6xl mx-auto w-full mb-8">
         <Link href="/">
@@ -104,15 +156,15 @@ export function AlumniHeroSection() {
               Sistem KTM Digital Alumni LP3I Pekanbaru
             </h1>
             <p className="text-xl md:text-2xl text-gray-600 max-w-2xl mx-auto">
-              Generate dan unduh Kartu Tanda Mahasiswa untuk Alumni
+              Generate dan unduh Kartu Tanda Alumni Anda secara digital
             </p>
           </div>
 
           {/* Main Search Card */}
           <div className="max-w-2xl mx-auto mt-12">
-            <Card className="p-10 bg-white hover:shadow-2xl transition-all duration-300 border-2 hover:border-green-500">
+            <Card className="p-10 bg-white hover:shadow-2xl transition-all duration-300 border-2 hover:border-blue-500">
               <div className="space-y-6">
-                <div className="flex items-center justify-center w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-3xl mx-auto shadow-lg">
+                <div className="flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl mx-auto shadow-lg">
                   <Search className="h-10 w-10 text-white" />
                 </div>
                 <div className="space-y-2">
@@ -130,9 +182,9 @@ export function AlumniHeroSection() {
                     className="text-center text-lg h-14 border-2"
                     disabled={isLoading}
                   />
-                  <Button 
-                    type="submit" 
-                    className="w-full h-14 text-lg bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+                  <Button
+                    type="submit"
+                    className="w-full h-14 text-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
                     disabled={!nim.trim() || isLoading}
                   >
                     {isLoading ? (
@@ -160,103 +212,71 @@ export function AlumniHeroSection() {
           </div>
 
           {/* Alumni Card Preview & Download */}
-          {alumni && (
+          {alumni && alumniKTMData && (
             <div className="max-w-2xl mx-auto mt-8 space-y-6">
-              <Card className="p-8 bg-white border-2 border-green-200">
+              <Card className="p-8 bg-white border-2 border-blue-200">
                 <div className="space-y-6">
-                  <div className="flex items-center justify-center gap-2 text-green-600">
+                  <div className="flex items-center justify-center gap-2 text-blue-600">
                     <CheckCircle className="h-6 w-6" />
                     <span className="font-semibold text-lg">KTM Alumni Berhasil Dibuat!</span>
                   </div>
-                  
-                  {/* Alumni Card */}
-                  <div id="alumni-card" className="flex justify-center">
-                    <AlumniKTMCard alumni={alumni} />
-                  </div>
+
+                  {/* KTM Card — AlumniKTMCard resmi (sama strukturnya dengan mahasiswa aktif) */}
+                  <AlumniKTMCard
+                    alumni={alumniKTMData}
+                    qrUrl={qrUrl}
+                    mode="flip"
+                    showFlipHint
+                  />
 
                   {/* Download Button */}
                   <Button
                     onClick={handleDownload}
-                    className="w-full h-14 text-lg bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+                    disabled={isDownloading}
+                    className="w-full h-14 text-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
                   >
-                    <Download className="mr-2 h-5 w-5" />
-                    Unduh KTM Alumni
+                    {isDownloading ? (
+                      <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        Mengunduh PDF...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="mr-2 h-5 w-5" />
+                        Unduh KTM Alumni (PDF)
+                      </>
+                    )}
                   </Button>
 
                   <p className="text-sm text-gray-500 text-center">
-                    KTM akan diunduh dalam format PNG
+                    💡 KTM akan diunduh dalam format PDF (2 halaman: depan + belakang)
                   </p>
                 </div>
               </Card>
+
+              {/* Hidden render targets untuk download resolusi tinggi */}
+              <div className="pointer-events-none fixed left-[-9999px] top-0">
+                <div data-alumni-hero="front" className="w-[900px]">
+                  <AlumniKTMCard
+                    alumni={alumniKTMData}
+                    qrUrl={qrUrl}
+                    mode="front-only"
+                    showFlipHint={false}
+                  />
+                </div>
+                <div data-alumni-hero="back" className="w-[900px]">
+                  <AlumniKTMCard
+                    alumni={alumniKTMData}
+                    qrUrl={qrUrl}
+                    mode="back-only"
+                    showFlipHint={false}
+                  />
+                </div>
+              </div>
             </div>
           )}
         </div>
       </div>
     </section>
-  );
-}
-
-// Alumni KTM Card Component (sama seperti KTM mahasiswa tapi warna hijau)
-function AlumniKTMCard({ alumni }: { alumni: AlumniData }) {
-  return (
-    <div className="w-[400px] h-[250px] bg-gradient-to-br from-green-600 via-green-500 to-green-400 rounded-2xl shadow-2xl p-6 text-white relative overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-32 translate-x-32" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full translate-y-24 -translate-x-24" />
-      </div>
-
-      {/* Content */}
-      <div className="relative z-10 h-full flex flex-col">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <LogoLP3I variant="white" size="md" className="h-12 w-12 mb-2" />
-            <div className="text-xs font-semibold opacity-90">POLITEKNIK LP3I</div>
-            <div className="text-xs opacity-80">Pekanbaru</div>
-          </div>
-          <div className="text-right">
-            <div className="text-xs opacity-80 uppercase">Kartu Alumni</div>
-            <div className="text-sm font-bold">Lulus {alumni.graduationYear}</div>
-          </div>
-        </div>
-
-        {/* Photo & Info */}
-        <div className="flex gap-4 flex-1">
-          {/* Photo */}
-          <div className="w-20 h-24 bg-white rounded-lg overflow-hidden shadow-lg flex-shrink-0">
-            {alumni.photoUrl ? (
-              <img src={alumni.photoUrl} alt={alumni.fullName} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-green-200 to-green-300 flex items-center justify-center text-green-700 text-2xl font-bold">
-                {alumni.fullName.charAt(0).toUpperCase()}
-              </div>
-            )}
-          </div>
-
-          {/* Info */}
-          <div className="flex-1 flex flex-col justify-center">
-            <div className="mb-3">
-              <div className="text-xs opacity-80 mb-1">Nama</div>
-              <div className="text-lg font-bold leading-tight">{alumni.fullName}</div>
-            </div>
-            <div className="mb-2">
-              <div className="text-xs opacity-80 mb-1">Program Studi</div>
-              <div className="text-sm font-semibold">{alumni.studyProgram}</div>
-            </div>
-            <div>
-              <div className="text-xs opacity-80 mb-1">NIM</div>
-              <div className="text-sm font-mono font-semibold">{alumni.nim}</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-auto pt-3 border-t border-white/20 flex justify-between items-center text-xs">
-          <div className="opacity-80">Alumni Terverifikasi</div>
-          <div className="font-semibold">Tahun Lulus: {alumni.graduationYear}</div>
-        </div>
-      </div>
-    </div>
   );
 }
